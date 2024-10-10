@@ -10,4 +10,5 @@ public class SpringBootChatMessengerApplication {
 		SpringApplication.run(SpringBootChatMessengerApplication.class, args);
 	}
 
+
 }
