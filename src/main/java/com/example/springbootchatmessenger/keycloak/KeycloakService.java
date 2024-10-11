@@ -1,5 +1,6 @@
 package com.example.springbootchatmessenger.keycloak;
 
+import com.example.springbootchatmessenger.user.UserEntityDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -48,7 +49,6 @@ public class KeycloakService {
         this.restTemplate = restTemplate;
     }
 
-    
 
     /*
      * in this method we will get user details like : username , firstname , lastname , email and password
@@ -71,6 +71,43 @@ public class KeycloakService {
                }
            ]
       }
+     * --> and for authentication you need to send access-token with this request
+     */
+    public void registerUser(UserEntityDto userEntityDto) {
+        String registerUserUrl = UriComponentsBuilder.fromHttpUrl(keycloakUrl)
+                .pathSegment("admin" , "realms" , realm , "users")
+                .toUriString();
+        log.info("register url is : {} " , registerUserUrl); // print register url for debugging
+        Map<String, Object> user = new HashMap<>();
+
+        user.put("username", userEntityDto.getUsername());
+        user.put("enabled", true);
+        user.put("email", userEntityDto.getEmail());
+        user.put("emailVerified", userEntityDto.getEmailVerified());
+        user.put("firstName", userEntityDto.getFirstName());
+        user.put("lastName", userEntityDto.getLastName());
+        user.put("credentials", List.of(Map.of("type", "password","value", userEntityDto.getPassword(), "temporary",false)));
+
+        HttpHeaders headers = new HttpHeaders();
+
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        Optional<String> token = getToken().describeConstable();
+        if (token.isPresent()) {
+
+            headers.set("Authorization", "Bearer " + token.get());
+            HttpEntity<Map<String,Object>> entity = new HttpEntity<>(user, headers);
+            ResponseEntity<String> response = restTemplate.exchange(registerUserUrl, HttpMethod.POST, entity, String.class);
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                log.info("User registered successfully : {}", userEntityDto.toString());
+            } else {
+                log.error("Error registering user: {}", response.getBody());
+            }
+
+        }
+
+    }
+
 
     /*
      * get token from keycloak to give access to do something in application .
