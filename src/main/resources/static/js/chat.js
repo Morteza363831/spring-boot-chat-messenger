@@ -1,6 +1,7 @@
 const urlParams = new URLSearchParams(window.location.search);
 const sender = urlParams.get('sender'); // Get sender username
 const receiver = urlParams.get('receiver'); // Get receiver username
+const chatId = "{{chatId}}";
 setUsernames(sender,receiver);
 
 
@@ -30,10 +31,8 @@ stompClient.connect({}, function(frame) {
 
     // Subscribe to the topic for receiving messages based on chat ID or user combination
     stompClient.subscribe('/topic/' + chatId, function(message) {
-        console.log("asfsdfkl;")
         const chatMessage = JSON.parse(message.body);
         displayMessage(chatMessage); // Display new incoming message
-        console.log("sended message");
         document.getElementById('notificationSound').play(); // Play notification sound
         scrollToBottom(); // Scroll to bottom when new message arrives
         hideTypingIndicator(); // Hide typing indicator if visible
@@ -107,7 +106,6 @@ document.getElementById('messageForm').addEventListener('submit', function(event
         const chatMessage = { sender, receiver, content : messageContent }; // Create the message object
 
         stompClient.send("/app/send", {}, JSON.stringify(chatMessage)); // Send message to server
-        displayMessage(chatMessage); // Display new incoming message
         document.getElementById('message').value = ''; // Clear input after sending
 
         stompClient.send("/app/typing", {}, JSON.stringify({ sender })); // Notify others that user is typing (for demonstration)
