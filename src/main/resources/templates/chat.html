@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chat Room</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="/css/chat.css">
+</head>
+<body>
+<div class="chat-container">
+  <h1>Chat Room</h1>
+
+  <p>Sending message from <span id="sender">USERNAME_FROM_KEYCLOAK</span> to <span id="receiver">RECIPIENT_FROM_CHAT</span></p>
+
+  <h2>Chat History</h2>
+  <ul class="chat-history" id="messageList"></ul>
+
+  <div id="typingIndicator" style="display:none;">Typing...</div> <!-- Typing indicator -->
+
+  <form id="messageForm">
+    <div class="form-group">
+      <textarea id="message" class="form-control" rows="1" placeholder="Type your message here..." required></textarea>
+      <button type="submit" class="btn">Send</button>
+    </div>
+  </form>
+</div>
+
+<audio id="notificationSound" src="https://www.soundjay.com/button/sounds/button-16.mp3" preload="auto"></audio> <!-- Notification sound -->
+
+<script src="/js/chat.js">
+
+</script>
+</body>
+</html>
