@@ -11,15 +11,14 @@ import java.io.Serializable;
  */
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class UserEntityDto implements Serializable {
-    String username;
-    Boolean enabled;
-    String email;
-    Boolean emailVerified;
-    String firstName;
-    String lastName;
-    String password;
+public class UserEntityDto {
+
+    private String username;
+    private Boolean enabled;
+    private String email;
+    private Boolean emailVerified;
+    private String firstName;
+    private String lastName;
+    private String password;
 
 }

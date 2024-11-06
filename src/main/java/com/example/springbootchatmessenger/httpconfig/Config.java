@@ -23,11 +23,4 @@ public class Config {
         return new RestTemplate();
     }
 
-    @Bean
-    public ModelMapper modelMapper() {
-        return new ModelMapper();
-    }
-
-
-
 }
