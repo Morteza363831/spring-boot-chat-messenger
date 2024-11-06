@@ -21,11 +21,9 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final ModelMapper modelMapper;
 
-    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper) {
+    public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.modelMapper = modelMapper;
     }
 
 
@@ -33,14 +31,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserEntityDto save(UserEntityDto userEntityDto) {
         //Optional<UserEntity> userEntityOptional = getUserById();
-        UserEntity userEntity = modelMapper.map(userEntityDto, UserEntity.class);
-        return modelMapper.map(userRepository.save(userEntity), UserEntityDto.class);
+        UserEntity userEntity = UserMapper.INSTANCE.userDtoToUserEntity(userEntityDto);
+        return UserMapper.INSTANCE.userEntityToUserDto(userRepository.save(userEntity));
     }
 
     @Override
     public UserEntityDto getUserById(Long id) {
         UserEntity userEntity = userRepository.findById(id).orElse(null);
-        return modelMapper.map(userEntity, UserEntityDto.class);
+        return UserMapper.INSTANCE.userEntityToUserDto(userEntity);
     }
 
     @Override
@@ -55,9 +53,7 @@ public class UserServiceImpl implements UserService {
         // Use Optional to handle the case where the list might be empty
         return Optional.of(users)
                 .filter(userList -> !userList.isEmpty()) // Check if the list is not empty
-                .map(userList -> userList.stream()
-                        .map(userEntity -> modelMapper.map(userEntity, UserEntityDto.class))
-                        .collect(Collectors.toList())) // Map to DTOs and collect into a list
+                .map(UserMapper.INSTANCE::userEntityListToUserDtoList) // Map to DTOs and collect into a list
                 .orElseGet(ArrayList::new); // Return an empty list if no users found
     }
 
