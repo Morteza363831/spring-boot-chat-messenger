@@ -18,37 +18,34 @@ import java.util.List;
 public class SessionServiceImpl implements SessionService {
 
     private final SessionRepository sessionRepository;
-    private final ModelMapper modelMapper;
 
-    public SessionServiceImpl(SessionRepository sessionRepository,
-                              ModelMapper modelMapper) {
+    public SessionServiceImpl(SessionRepository sessionRepository) {
         this.sessionRepository = sessionRepository;
-        this.modelMapper = modelMapper;
     }
 
 
 
     @Override
-    public SessionEntityDto save(String firstusername, String secondusername) {
-        SessionEntityDto sessionEntityDto = new SessionEntityDto();
-        sessionEntityDto.setUsername1(firstusername);
-        sessionEntityDto.setUsername2(secondusername);
-        SessionEntity sessionEntity = modelMapper.map(sessionEntityDto, SessionEntity.class);
-        return modelMapper.map(sessionRepository.save(sessionEntity), SessionEntityDto.class);
+    public SessionEntityDto save(SessionEntityDto sessionEntityDto) {
+        SessionEntity sessionEntity = SessionMapper.INSTANCE.sessionDtoToSessionEntity(sessionEntityDto);
+        return SessionMapper.INSTANCE.sessionEntityToSessionDto(sessionRepository.save(sessionEntity));
     }
 
     @Override
-    public SessionEntityDto findByUsernames(String firstUsername, String secondUsername) {
-        List<SessionEntity> sessions = sessionRepository.findByUsernames(firstUsername, secondUsername);
+    public SessionEntityDto findByUsernames(String username1, String username2) {
+        List<SessionEntity> sessions = sessionRepository.findByUsernames(username1, username2);
 
         if (sessions.isEmpty()) {
-            log.error("session not found for usernames : {} , {}", firstUsername, secondUsername);
+            log.error("session not found for usernames : {} , {}", username1, username2);
             // Create a new session if none exists
-            SessionEntityDto sessionEntityDto = save(firstUsername, secondUsername);
+            SessionEntityDto sessionEntityDto = new SessionEntityDto();
+            sessionEntityDto.setUsername1(username1);
+            sessionEntityDto.setUsername2(username2);
+            sessionEntityDto = save(sessionEntityDto);
             log.info("session created with chatId : {}", sessionEntityDto.getId());
             return sessionEntityDto;
         } else {
-            SessionEntityDto sessionEntityDto = modelMapper.map(sessions.get(0), SessionEntityDto.class);
+            SessionEntityDto sessionEntityDto = SessionMapper.INSTANCE.sessionEntityToSessionDto(sessions.get(0));
             log.info("session founded");
             return sessionEntityDto;
         }
