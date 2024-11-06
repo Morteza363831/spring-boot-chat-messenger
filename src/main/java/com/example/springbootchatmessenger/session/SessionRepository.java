@@ -23,6 +23,6 @@ public interface SessionRepository extends JpaRepository<SessionEntity, Long> {
     @Query(value = "SELECT * FROM sessions WHERE (username1 = :firstUsername " +
             "AND username2 = :secondUsername) " +
             "OR (username1 = :secondUsername AND username2 = :firstUsername)", nativeQuery = true)
-    List<SessionEntity> findByUsernames(@Param("firstUsername") String firstUsername, @Param("secondUsername") String secondUsername);
+    SessionEntity findByUsernames(@Param("firstUsername") String firstUsername, @Param("secondUsername") String secondUsername);
 
 }

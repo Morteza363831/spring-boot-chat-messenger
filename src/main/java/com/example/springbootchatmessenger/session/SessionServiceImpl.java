@@ -2,7 +2,6 @@ package com.example.springbootchatmessenger.session;
 
 
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -33,21 +32,29 @@ public class SessionServiceImpl implements SessionService {
 
     @Override
     public SessionEntityDto findByUsernames(String username1, String username2) {
-        List<SessionEntity> sessions = sessionRepository.findByUsernames(username1, username2);
 
-        if (sessions.isEmpty()) {
+        SessionEntity sessionEntity = sessionRepository.findByUsernames(username1, username2);
+        SessionEntityDto sessionEntityDto;
+
+        if (checkNull(sessionEntity)) {
             log.error("session not found for usernames : {} , {}", username1, username2);
             // Create a new session if none exists
-            SessionEntityDto sessionEntityDto = new SessionEntityDto();
-            sessionEntityDto.setUsername1(username1);
-            sessionEntityDto.setUsername2(username2);
-            sessionEntityDto = save(sessionEntityDto);
+            sessionEntityDto = addNewSession(username1, username2);
             log.info("session created with chatId : {}", sessionEntityDto.getId());
             return sessionEntityDto;
         } else {
-            SessionEntityDto sessionEntityDto = SessionMapper.INSTANCE.sessionEntityToSessionDto(sessions.get(0));
+            sessionEntityDto = SessionMapper.INSTANCE.sessionEntityToSessionDto(sessionEntity);
             log.info("session founded");
             return sessionEntityDto;
         }
+    }
+
+    private boolean checkNull(SessionEntity sessionEntity) {
+        return sessionEntity == null;
+    }
+
+    private SessionEntityDto addNewSession(String username1, String username2) {
+
+        return save(new SessionEntityDto(null, username1, username2));
     }
 }
