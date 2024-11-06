@@ -1,17 +1,16 @@
 package com.example.springbootchatmessenger.keycloak;
 
 import com.example.springbootchatmessenger.user.UserEntityDto;
+import com.nimbusds.jose.Header;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.protocol.types.Field;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /*
  * this class will handle keycloak requests and responses
@@ -43,10 +42,13 @@ public class KeycloakService {
 
     // injections
     private final RestTemplate restTemplate;
+    private HttpHeaders headers;
+    private ResponseEntity<String> response;
 
     // constructor
     public KeycloakService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
+        this.headers = new HttpHeaders();
     }
 
 
@@ -78,28 +80,18 @@ public class KeycloakService {
                 .pathSegment("admin" , "realms" , realm , "users")
                 .toUriString();
         log.info("register url is : {} " , registerUserUrl); // print register url for debugging
-        Map<String, Object> user = new HashMap<>();
 
-        user.put("username", userEntityDto.getUsername());
-        user.put("enabled", true);
-        user.put("email", userEntityDto.getEmail());
-        user.put("emailVerified", userEntityDto.getEmailVerified());
-        user.put("firstName", userEntityDto.getFirstName());
-        user.put("lastName", userEntityDto.getLastName());
-        user.put("credentials", List.of(Map.of("type", "password","value", userEntityDto.getPassword(), "temporary",false)));
-
-        HttpHeaders headers = new HttpHeaders();
 
         headers.setContentType(MediaType.APPLICATION_JSON);
         Optional<String> token = getToken().describeConstable();
         if (token.isPresent()) {
 
             headers.set("Authorization", "Bearer " + token.get());
-            HttpEntity<Map<String,Object>> entity = new HttpEntity<>(user, headers);
-            ResponseEntity<String> response = restTemplate.exchange(registerUserUrl, HttpMethod.POST, entity, String.class);
+            HttpEntity<Map<String,Object>> entity = new HttpEntity<>(mapUser(userEntityDto), headers);
+            response = restTemplate.exchange(registerUserUrl, HttpMethod.POST, entity, String.class);
 
             if (response.getStatusCode().is2xxSuccessful()) {
-                log.info("User registered successfully : {}", userEntityDto.toString());
+                log.info("User registered successfully : {}", userEntityDto);
             } else {
                 log.error("Error registering user: {}", response.getBody());
             }
@@ -120,7 +112,6 @@ public class KeycloakService {
                 .pathSegment("realms", realm, "protocol", "openid-connect", "token")
                 .toUriString();
 
-        HttpHeaders headers = new HttpHeaders();
 
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
@@ -128,18 +119,37 @@ public class KeycloakService {
 
         HttpEntity<String> entity = new HttpEntity<>(body, headers);
 
-        ResponseEntity<String> response = restTemplate.exchange(getTokenUrl, HttpMethod.POST, entity, String.class);
+        response = restTemplate.exchange(getTokenUrl, HttpMethod.POST, entity, String.class);
 
         if (response.getStatusCode().is2xxSuccessful()) {
             log.info("Token obtained successfully : {}", response.getBody());
             String responseBody = response.getBody();
-            assert responseBody != null;
-            int startIndex = responseBody.indexOf("access_token\":\"") + "access_token\":\"".length();
-            int endIndex = responseBody.indexOf("\"", startIndex);
-            return responseBody.substring(startIndex, endIndex);
+            return extractAccessToken(Objects.requireNonNull(responseBody));
         }
         log.error("Error obtaining token : {}", response.getStatusCode());
         return null;
     }
+
+
+
+    private String extractAccessToken(String token) {
+        int startIndex = token.indexOf("access_token\":\"") + "access_token\":\"".length();
+        int endIndex = token.indexOf("\"", startIndex);
+        return token.substring(startIndex, endIndex);
+    }
+
+    private Map<String, Object> mapUser(UserEntityDto userEntityDto) {
+        Map<String, Object> user = new HashMap<>();
+        user.put("username", userEntityDto.getUsername());
+        user.put("enabled", true);
+        user.put("email", userEntityDto.getEmail());
+        user.put("emailVerified", userEntityDto.getEmailVerified());
+        user.put("firstName", userEntityDto.getFirstName());
+        user.put("lastName", userEntityDto.getLastName());
+        user.put("credentials", List.of(Map.of("type", "password","value", userEntityDto.getPassword(), "temporary",false)));
+        return user;
+    }
+
+
 
 }
