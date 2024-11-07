@@ -39,8 +39,8 @@ public class MessageController {
      * MessageEntityDto store content of message , sender and receiver usernames
      */
     @MessageMapping("/send") // endpoint for sending messages
-    public void sendMessage(MessageEntityDto chatMessage) {
-        messageService.save(chatMessage); // store message in db
+    public void sendMessage(MessageContent chatMessage) {
+        messageService.saveMessage(chatMessage); // store message in db
         Long chatId = sessionService.findByUsernames(chatMessage.getSender(), chatMessage.getReceiver()).getId(); // find chat id for sender and receiver
         simpMessagingTemplate.convertAndSend("/topic/" + chatId, chatMessage);
         log.info("chat id for sender , receiver is : {} , {} , {}", chatMessage.getSender(), chatMessage.getReceiver(), chatId);
@@ -50,9 +50,9 @@ public class MessageController {
      * this endpoint will get all messages between to users with their chat id (sessionId)
      */
     @GetMapping("/messages")
-    public ResponseEntity<List<MessageEntityDto>> getAllMessages(@RequestParam String sender,
+    public ResponseEntity<List<MessageContent>> getAllMessages(@RequestParam String sender,
                                                                  @RequestParam String receiver) {
-        List<MessageEntityDto> messages = messageService.findAll(sender, receiver);
+        List<MessageContent> messages = messageService.findAll(sessionService.findByUsernames(sender, receiver));
         return ResponseEntity.ok(messages);
     }
 }
