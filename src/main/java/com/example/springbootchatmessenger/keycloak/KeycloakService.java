@@ -42,13 +42,11 @@ public class KeycloakService {
 
     // injections
     private final RestTemplate restTemplate;
-    private HttpHeaders headers;
     private ResponseEntity<String> response;
 
     // constructor
     public KeycloakService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
-        this.headers = new HttpHeaders();
     }
 
 
@@ -82,6 +80,7 @@ public class KeycloakService {
         log.info("register url is : {} " , registerUserUrl); // print register url for debugging
 
 
+        HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         Optional<String> token = getToken().describeConstable();
         if (token.isPresent()) {
@@ -113,6 +112,7 @@ public class KeycloakService {
                 .toUriString();
 
 
+        HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
         String body = "client_id=" + clientId + "&client_secret=" + clientSecret + "&grant_type=client_credentials";

@@ -1,12 +1,16 @@
 package com.example.springbootchatmessenger.message;
 
+import com.example.springbootchatmessenger.session.SessionEntityDto;
+
 import java.util.List;
 
 public interface MessageService {
 
-    MessageEntityDto save(MessageEntityDto messageEntityDto);
+    void saveMessage(MessageContent messageContent);
 
-    MessageEntityDto findById(Long id);
+    MessageEntity saveMessageEntity(SessionEntityDto sessionEntityDto);
 
-    List<MessageEntityDto> findAll(String sender, String receiver);
+    MessageContent findById(Long id);
+
+    List<MessageContent> findAll(SessionEntityDto sessionEntityDto);
 }

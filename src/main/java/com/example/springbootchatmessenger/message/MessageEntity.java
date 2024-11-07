@@ -1,6 +1,7 @@
 package com.example.springbootchatmessenger.message;
 
 
+import com.example.springbootchatmessenger.session.SessionEntity;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,16 +18,18 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "messages")
 @Data
-@NoArgsConstructor
 public class MessageEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
+    @OneToOne(fetch = FetchType.EAGER)
+    private SessionEntity sessionEntity;
+
+    @Lob
     private String content;
 
-    private String sender;
 
-    private String receiver;
+
 }
