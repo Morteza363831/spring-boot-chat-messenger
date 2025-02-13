@@ -49,7 +49,7 @@ public class SignupController {
      */
     @PostMapping()
     public ResponseEntity<?> createUser(@RequestBody UserEntityDto user) {
-        Optional<UserEntityDto> userEntityDtoOptional = Optional.ofNullable(userService.save(user));
+        final Optional<UserEntityDto> userEntityDtoOptional = Optional.ofNullable(userService.save(user));
         if (userEntityDtoOptional.isPresent()) {
             return ResponseEntity.status(HttpStatus.CREATED).body(userEntityDtoOptional.get());
         }
