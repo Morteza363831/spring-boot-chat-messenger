@@ -99,7 +99,7 @@ public class SecurityConfig {
                 .authenticationManager(authenticationManager())
                 .authorizeHttpRequests(request -> {
                     request
-                            .requestMatchers("/signup", "/signup/create", "/css/signUp.css", "/js/signUp.js")
+                            .requestMatchers("/signup", "/login/token", "/signup/create", "/css/signUp.css", "/js/signUp.js")
                             .permitAll()
                             .anyRequest()
                             .authenticated();
