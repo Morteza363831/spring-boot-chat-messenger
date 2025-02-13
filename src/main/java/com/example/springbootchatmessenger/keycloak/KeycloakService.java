@@ -1,4 +1,3 @@
-/*
 package com.example.springbootchatmessenger.keycloak;
 
 import com.example.springbootchatmessenger.user.UserEntityDto;
@@ -13,33 +12,27 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.*;
 
-*/
 /*
  * this class will handle keycloak requests and responses
- *//*
-
+ */
 
 @Service
 @Slf4j
 public class KeycloakService {
 
 
-    */
-/*
+    /*
      * @Value will get value of a variable in application.properties and store it in these variables !
-     *//*
-
+     */
     @Value("${keycloak.auth-server-url}") // keycloak base url
     private String keycloakUrl;
 
     @Value("${keycloak.realm}") // keycloak realm name --> for all services which we want in this single-sign-on (sso)
     private String realm;
 
-    */
-/*
+    /*
      * web messenger is just a service for now . but in future we will add some services to this sso and complain all of them !
-     *//*
-
+     */
     @Value("${keycloak.client-id}") // keycloak client name --> for this service (web messenger service)
     private String clientId;
 
@@ -57,8 +50,7 @@ public class KeycloakService {
     }
 
 
-    */
-/*
+    /*
      * in this method we will get user details like : username , firstname , lastname , email and password
      * then we will create a new user with these details in keycloak .
      * --> the endpoint must be something like it : http://localhost:8080/admin/realms/{realm-name}/users
@@ -80,8 +72,7 @@ public class KeycloakService {
            ]
       }
      * --> and for authentication you need to send access-token with this request
-     *//*
-
+     */
     public void registerUser(UserEntityDto userEntityDto) {
         String registerUserUrl = UriComponentsBuilder.fromHttpUrl(keycloakUrl)
                 .pathSegment("admin" , "realms" , realm , "users")
@@ -109,14 +100,12 @@ public class KeycloakService {
     }
 
 
-    */
-/*
+    /*
      * get token from keycloak to give access to do something in application .
      * now we just use this token to make a new user .
      * But in future we will use it to open chats ( pages for users to chat with together)
      * and more ...
-     *//*
-
+     */
     public String getToken() {
         String getTokenUrl = UriComponentsBuilder.fromHttpUrl(keycloakUrl)
                 .pathSegment("realms", realm, "protocol", "openid-connect", "token")
@@ -164,4 +153,3 @@ public class KeycloakService {
 
 
 }
-*/
