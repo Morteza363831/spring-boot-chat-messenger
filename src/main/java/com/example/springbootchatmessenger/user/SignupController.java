@@ -1,15 +1,14 @@
 package com.example.springbootchatmessenger.user;
 
-import com.example.springbootchatmessenger.keycloak.KeycloakService;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
+import java.util.Optional;
 
 /*
  * this class will open signup page and will add a user to database
@@ -21,13 +20,10 @@ import java.io.IOException;
 public class SignupController {
 
     private final ResourceLoader resourceLoader;
-    private final KeycloakService keycloakService;
     private final UserService userService;
     public SignupController(ResourceLoader resourceLoader,
-                            KeycloakService keycloakService,
                             UserService userService) {
         this.resourceLoader = resourceLoader;
-        this.keycloakService = keycloakService;
         this.userService = userService;
     }
 
@@ -52,14 +48,12 @@ public class SignupController {
      * this endpoint will create new user
      */
     @PostMapping()
-    public ResponseEntity<String> createUser(@RequestBody UserEntityDto user, HttpServletResponse response) throws IOException {
-        keycloakService.registerUser(user);
-        response.sendRedirect("/login");
-        if (response.isCommitted()) {
-            userService.save(user);
-            return ResponseEntity.status(302).build();
+    public ResponseEntity<?> createUser(@RequestBody UserEntityDto user) {
+        Optional<UserEntityDto> userEntityDtoOptional = Optional.ofNullable(userService.save(user));
+        if (userEntityDtoOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(userEntityDtoOptional.get());
         }
-        log.error("sign up failed");
-        return ResponseEntity.status(409).build();
+        log.info("User creation failed");
+        return ResponseEntity.status(HttpStatus.CONFLICT).build();
     }
 }

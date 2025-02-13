@@ -11,14 +11,15 @@ import java.io.Serializable;
  */
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserEntityDto {
 
     private String username;
     private Boolean enabled;
     private String email;
-    private Boolean emailVerified;
     private String firstName;
     private String lastName;
     private String password;
-
+    private String authorities;
 }
