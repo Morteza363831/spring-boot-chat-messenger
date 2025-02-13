@@ -1,34 +1,20 @@
 package com.example.springbootchatmessenger.security;
 
 //import com.example.springbootchatmessenger.keycloak.GrantedAuthoritiesMapperImpl; <-- to handle roles
-import com.example.springbootchatmessenger.jwt.CustomAuthenticationEntryPoint;
-import com.example.springbootchatmessenger.jwt.CustomAuthenticationManager;
-import com.example.springbootchatmessenger.jwt.JwtRequestFilter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.io.IOException;
 
@@ -41,17 +27,35 @@ import java.io.IOException;
 
 @Configuration
 @EnableWebSecurity
-@Slf4j
+@ComponentScan(basePackages = "com.example")
 public class SecurityConfig {
 
 
-    /*private final CustomAuthenticationProvider customAuthenticationProvider;*/
+    private final CustomAuthenticationProvider customAuthenticationProvider;
 
-    private final JwtRequestFilter requestFilter;
-
-    public SecurityConfig(final JwtRequestFilter requestFilter) {
-        this.requestFilter = requestFilter;
+    public SecurityConfig(CustomAuthenticationProvider customAuthenticationProvider) {
+        this.customAuthenticationProvider = customAuthenticationProvider;
     }
+
+    /*@Autowired
+    private CustomAuthenticationProvider customAuthenticationProvider;
+
+    @Bean
+    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+
+        System.out.println(customAuthenticationProvider.toString());
+        AuthenticationManagerBuilder authenticationManagerBuilder = http
+                .getSharedObject(AuthenticationManagerBuilder.class);
+        authenticationManagerBuilder.authenticationProvider(customAuthenticationProvider);
+        return authenticationManagerBuilder.build();
+    }*/
+
+
+    // below method wil handle authorities for each user !
+    /*@Bean
+    public GrantedAuthoritiesMapper userAuthoritiesMapper() {
+        return new GrantedAuthoritiesMapperImpl();
+    }*/
 
     @Bean
     public AuthenticationSuccessHandler authenticationSuccessHandler() {
@@ -79,35 +83,7 @@ public class SecurityConfig {
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
         http
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(httpSecurityCorsConfigurer -> {
-                    httpSecurityCorsConfigurer.configurationSource(corsConfigurationSource());
-                    log.info("Cors applied");
-                })
-                .exceptionHandling(hehc -> {
-                    hehc.accessDeniedHandler(new AccessDeniedHandlerImpl());
-                    hehc.authenticationEntryPoint(authenticationEntryPoint());
-                    log.info("Access Denied");
-                })
-                .sessionManagement(httpSecuritySessionManagementConfigurer -> {
-                    httpSecuritySessionManagementConfigurer
-                            .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-                    log.info("Session Creation");
-                })
-                .authenticationManager(authenticationManager())
-                .authorizeHttpRequests(request -> {
-                    request
-                            .requestMatchers("/signup", "/login/token", "/signup/create", "/css/signUp.css", "/js/signUp.js")
-                            .permitAll()
-                            .anyRequest()
-                            .authenticated();
-                    log.info("Authenticated");
-                })
-                .addFilterAt(requestFilter, UsernamePasswordAuthenticationFilter.class);
-
-        /*http
                 .authorizeHttpRequests(requests ->
                         requests.requestMatchers("/signup","/css/signUp.css","/js/signUp.js","/signup/create").permitAll()
                                 .anyRequest().authenticated())
@@ -122,41 +98,14 @@ public class SecurityConfig {
                             .successHandler(authenticationSuccessHandler());
                 })
                 .csrf(AbstractHttpConfigurer::disable);
-*/
+
         return http.build();
     }
 
 
-    @Bean
-    public AuthenticationEntryPoint authenticationEntryPoint() {
-        return new CustomAuthenticationEntryPoint();
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager() {
-        return new CustomAuthenticationManager();
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
-        config.addAllowedOrigin("*");
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
-    }
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring().requestMatchers("/h2-console/**");
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 }
