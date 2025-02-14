@@ -3,14 +3,16 @@ package com.example.springbootchatmessenger.message;
 
 import com.example.springbootchatmessenger.session.SessionEntityDto;
 import com.example.springbootchatmessenger.session.SessionMapper;
-import com.example.springbootchatmessenger.session.SessionService;
 import com.example.springbootchatmessenger.utility.JsonMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 /*
  * this class will handle requests and responses for messages
@@ -24,20 +26,20 @@ import java.util.List;
 public class MessageServiceImpl implements MessageService {
 
     private final MessageRepository messageRepository;
-    private final SessionService sessionService;
+    private final ObjectMapper mapper;
 
     public MessageServiceImpl(MessageRepository messageRepository,
-                              SessionService sessionService) {
+                              ObjectMapper mapper) {
         this.messageRepository = messageRepository;
-        this.sessionService = sessionService;
+        this.mapper = mapper;
     }
 
 
 
     @Override
-    public void saveMessage(MessageContent messageContent) {
+    public void saveMessage(UUID sessionId, MessageContent messageContent) {
         // create new message entity if there is no tuple in database
-        addMessageContentAndUpdateMessageEntity(messageContent);
+        addMessageContentAndUpdateMessageEntity(sessionId, messageContent);
     }
 
     @Override
@@ -53,18 +55,23 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public List<MessageContent> findAll(SessionEntityDto sessionEntityDto) {
         // find message entity
-        MessageEntity messageEntity = messageRepository.findBySessionEntity(SessionMapper.INSTANCE.sessionDtoToSessionEntity(sessionEntityDto));
+        Optional<MessageEntity> messageEntityOptional = Optional
+                .ofNullable(messageRepository
+                        .findBySessionEntity(SessionMapper.INSTANCE.sessionDtoToSessionEntity(sessionEntityDto)));
+
+        MessageEntity messageEntity = messageEntityOptional.orElse(null);
         // if message entity is null create one
-        if (messageEntity == null) {
+        if (messageEntityOptional.isEmpty()) {
             messageEntity = saveMessageEntity(sessionEntityDto);
         }
         // then read message contents
+        MessageContentList messageContentList = new MessageContentList();
         try {
-            MessageContentList messageContentList = checkNull(JsonMapper.MAPPER.readValue(messageEntity.getContent(),MessageContentList.class));
-            return messageContentList.getMessageContentList();
+            messageContentList = mapper.readValue(messageEntity.getContent(), MessageContentList.class);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            log.error("Couldn't parse message", e);
         }
+        return messageContentList.getMessageContentList();
     }
 
 
@@ -74,27 +81,28 @@ public class MessageServiceImpl implements MessageService {
     private MessageEntity createMessageEntity(SessionEntityDto sessionEntityDto) {
 
         // find message entity by session
-        MessageEntity messageEntity = messageRepository.findBySessionEntity(SessionMapper.INSTANCE.sessionDtoToSessionEntity(sessionEntityDto));
+        Optional<MessageEntity> messageEntityOptional = Optional
+                .ofNullable(messageRepository
+                        .findBySessionEntity(SessionMapper.INSTANCE.sessionDtoToSessionEntity(sessionEntityDto)));
         // if message entity is null create one
-        if (messageEntity == null) {
-            messageEntity = new MessageEntity();
-            messageEntity.setSessionEntity(SessionMapper.INSTANCE.sessionDtoToSessionEntity(sessionEntityDto));
-            MessageContentList messageContentList = new MessageContentList();
-            try {
-                messageEntity.setContent(JsonMapper.MAPPER.writeValueAsString(messageContentList));
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
+        if (messageEntityOptional.isPresent()) {
+            // persist message entity
+            return messageRepository.save(messageEntityOptional.get());
         }
         // persist message entity
+        MessageEntity messageEntity = new MessageEntity();
+        messageEntity.setSessionEntity(SessionMapper.INSTANCE.sessionDtoToSessionEntity(sessionEntityDto));
+        try {
+            messageEntity.setContent(mapper.writeValueAsString(new MessageContentList()));
+        } catch (JsonProcessingException e) {
+            log.error("Couldn't parse messages");
+        }
         return messageRepository.save(messageEntity);
     }
 
-    private void addMessageContentAndUpdateMessageEntity(MessageContent messageContent) {
+    private void addMessageContentAndUpdateMessageEntity(UUID sessionId, MessageContent messageContent) {
         try {
-            // find session (we need session to detect messages between two users)
-            SessionEntityDto sessionEntityDto = sessionService.findByUsernames(messageContent.getSender(), messageContent.getReceiver());
-            MessageEntity messageEntity = messageRepository.findBySessionEntity(SessionMapper.INSTANCE.sessionDtoToSessionEntity(sessionEntityDto));
+            MessageEntity messageEntity = messageRepository.findBySessionEntityId(sessionId);
             // get message content (sender , receiver and message) then map it from json to an object
             MessageContentList messageContentList = checkNull(JsonMapper.MAPPER.readValue(messageEntity.getContent(), MessageContentList.class));
             // add message
