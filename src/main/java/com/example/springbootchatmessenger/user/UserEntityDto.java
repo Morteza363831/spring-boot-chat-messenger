@@ -19,6 +19,7 @@ public class UserEntityDto {
     private Boolean emailVerified;
     private String firstName;
     private String lastName;
+    private String authorities;
     private String password;
 
 }
