@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -29,25 +30,25 @@ public class ChatController {
     }
 
     @GetMapping
-    public ResponseEntity<String> openChat(@RequestParam String sender,
-                                           @RequestParam String receiver) {
+    public ResponseEntity<String> openChat(@RequestParam Long senderUserId,
+                                           @RequestParam Long receiverUserId) {
         String RESOURCE_PATH = "classpath:templates/chat.html"; // Path to chat HTML file
         Resource resource = resourceLoader.getResource(RESOURCE_PATH);
 
-        log.info("Attempting to open chat between sender: '{}' and receiver: '{}'", sender, receiver);
+        log.info("Attempting to open chat between sender: '{}' and receiver: '{}'", senderUserId, receiverUserId);
 
         try {
-            Long chatId = sessionService.findByUsernames(sender, receiver).getId();
-            log.info("Chat id for sender '{}' and receiver '{}' is: {}", sender, receiver, chatId);
+            UUID chatId = sessionService.findByUserIds(senderUserId, receiverUserId).getId();
+            log.info("Chat id for sender '{}' and receiver '{}' is: {}", senderUserId, receiverUserId, chatId.toString());
 
             // Check if the resource exists and read it as a string
             if (resource.exists()) {
                 String htmlContent = new String(Files.readAllBytes(Paths.get(resource.getURI())));
 
                 // Insert the chat ID into the HTML by replacing a placeholder
-                htmlContent = htmlContent.replace("{{chatId}}", String.valueOf(chatId));
+                htmlContent = htmlContent.replace("{{chatId}}", String.valueOf(chatId.toString()));
 
-                log.info("Chat page has been successfully opened with chat id: {}", chatId);
+                log.info("Chat page has been successfully opened with chat id: {}", chatId.toString());
                 return ResponseEntity.ok()
                         .header(HttpHeaders.CONTENT_TYPE, "text/html")
                         .body(htmlContent);

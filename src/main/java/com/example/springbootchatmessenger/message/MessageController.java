@@ -5,11 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -39,20 +38,24 @@ public class MessageController {
      * MessageEntityDto store content of message , sender and receiver usernames
      */
     @MessageMapping("/send") // endpoint for sending messages
-    public void sendMessage(MessageContent chatMessage) {
-        messageService.saveMessage(chatMessage); // store message in db
-        Long chatId = sessionService.findByUsernames(chatMessage.getSender(), chatMessage.getReceiver()).getId(); // find chat id for sender and receiver
-        simpMessagingTemplate.convertAndSend("/topic/" + chatId, chatMessage);
-        log.info("chat id for sender , receiver is : {} , {} , {}", chatMessage.getSender(), chatMessage.getReceiver(), chatId);
+    public void sendMessage(UUID sessionId, MessageContent chatMessage) {
+        messageService.saveMessage(sessionId, chatMessage); // store message in db
+        simpMessagingTemplate.convertAndSend("/topic/" + sessionId, chatMessage);
+        log.info("chat id for sender , receiver is : {} , {} , {}", chatMessage.getSenderUserId(), chatMessage.getReceiverUserId(), sessionId);
     }
 
     /*
      * this endpoint will get all messages between to users with their chat id (sessionId)
      */
     @GetMapping("/messages")
-    public ResponseEntity<List<MessageContent>> getAllMessages(@RequestParam String sender,
-                                                                 @RequestParam String receiver) {
-        List<MessageContent> messages = messageService.findAll(sessionService.findByUsernames(sender, receiver));
+    public ResponseEntity<List<MessageContent>> getAllMessages(@RequestParam Long senderUserId,
+                                                                 @RequestParam Long receiverUserId) {
+        List<MessageContent> messages = messageService.findAll(sessionService.findByUserIds(senderUserId, receiverUserId));
         return ResponseEntity.ok(messages);
+    }
+
+    @PostMapping("/message/{sessionId}")
+    public void saveMessage(@PathVariable UUID sessionId ,@RequestBody MessageContent chatMessage) {
+        messageService.saveMessage(sessionId, chatMessage);
     }
 }
