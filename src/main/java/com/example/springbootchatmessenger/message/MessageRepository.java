@@ -13,7 +13,7 @@ import java.util.UUID;
  */
 
 @Repository
-public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
+public interface MessageRepository extends JpaRepository<MessageEntity, UUID> {
 
 
 
@@ -22,7 +22,7 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
      * The message entity contains all messages and information
      * about sender and receiver and session id too.
      */
-    MessageEntity findBySessionEntity(SessionEntity sessionEntity);
+    MessageEntity findBySessionEntity(final SessionEntity sessionEntity);
 
-    MessageEntity findBySessionEntityId(UUID sessionEntityId);
+    MessageEntity findBySessionEntityId(final UUID sessionEntityId);
 }

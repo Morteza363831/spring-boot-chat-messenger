@@ -27,9 +27,9 @@ public class CustomUserDetailsService implements UserDetailsService {
     private PasswordEncoder passwordEncoder;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
 
-        Optional<UserEntity> optionalUserEntity = Optional.ofNullable(userRepository.findByUsername(username));
+        final Optional<UserEntity> optionalUserEntity = Optional.ofNullable(userRepository.findByUsername(username));
 
         User.UserBuilder userBuilder = null;
 
@@ -39,11 +39,11 @@ public class CustomUserDetailsService implements UserDetailsService {
                     .withUsername(userEntity.getUsername())
                     .password(passwordEncoder.encode(userEntity.getPassword()));
 
-            List<String> authorities = new ArrayList<>();
+            final List<String> authorities = new ArrayList<>();
             Optional.ofNullable(userEntity.getAuthorities()).ifPresent(authority -> {
                 authorities.addAll( Arrays.stream(authority.split(",")).toList());
             });
-            String[] result = new String[authorities.size()];
+            final String[] result = new String[authorities.size()];
             authorities.forEach(authority -> {
                 result[authorities.indexOf(authority)] = authority;
             });

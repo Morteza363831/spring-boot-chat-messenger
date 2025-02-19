@@ -25,10 +25,11 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     private CustomUserDetailsService customUserDetailsService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(final HttpServletRequest request,
+                                    final HttpServletResponse response,
+                                    final FilterChain filterChain) throws ServletException, IOException {
 
+        System.out.println(request.getRequestURI());
         String username = null;
         final String authorizationHeader = request.getHeader("Authorization");
 
@@ -40,7 +41,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
                 if (jwtTokenUtil.validateToken(token, userDetails)) {
-                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
+                    final UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                             new UsernamePasswordAuthenticationToken(userDetails, userDetails.getPassword(), userDetails.getAuthorities());
 
                     SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
@@ -53,9 +54,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             else {
                 log.error("Invalid Username or Password");
             }
-        }
-        else {
-            log.error("Invalid Authorization header");
         }
 
         filterChain.doFilter(request, response);

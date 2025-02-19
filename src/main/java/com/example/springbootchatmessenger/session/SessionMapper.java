@@ -8,7 +8,7 @@ public interface SessionMapper {
 
     SessionMapper INSTANCE = Mappers.getMapper(SessionMapper.class);
 
-    SessionEntity sessionDtoToSessionEntity(SessionEntityDto sessionEntityDto);
+    SessionEntity sessionDtoToSessionEntity(final SessionEntityDto sessionEntityDto);
 
-    SessionEntityDto sessionEntityToSessionDto(SessionEntity sessionEntity);
+    SessionEntityDto sessionEntityToSessionDto(final SessionEntity sessionEntity);
 }

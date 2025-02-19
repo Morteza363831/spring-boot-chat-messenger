@@ -29,16 +29,16 @@ public class CustomAuthenticationManager implements AuthenticationManager {
     private PasswordEncoder passwordEncoder;
 
     @Override
-    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+    public Authentication authenticate(final Authentication authentication) throws AuthenticationException {
 
-        Optional<UserEntity> userEntityOptional = Optional.ofNullable(userRepository.findByUsername(authentication.getName()));
+        final Optional<UserEntity> userEntityOptional = Optional.ofNullable(userRepository.findByUsername(authentication.getName()));
 
         if (userEntityOptional.isPresent()) {
             UserEntity userEntity = userEntityOptional.get();
 
             if (passwordEncoder.encode(authentication.getCredentials().toString()).equals(userEntity.getPassword())) {
-                List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
-                List<String> userRoles = Arrays.stream(userEntityOptional.get().getAuthorities().split(",")).toList();
+                final List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
+                final List<String> userRoles = Arrays.stream(userEntityOptional.get().getAuthorities().split(",")).toList();
                 userRoles.forEach(userRole -> grantedAuthorities.add(new SimpleGrantedAuthority(userRole)));
 
                 return new UsernamePasswordAuthenticationToken(userEntity.getUsername(), authentication.getCredentials(), grantedAuthorities);

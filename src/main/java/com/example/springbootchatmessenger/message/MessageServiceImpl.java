@@ -6,6 +6,7 @@ import com.example.springbootchatmessenger.session.SessionMapper;
 import com.example.springbootchatmessenger.utility.JsonMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -36,12 +37,14 @@ public class MessageServiceImpl implements MessageService {
 
 
 
+    @Transactional(rollbackOn = Exception.class)
     @Override
     public void saveMessage(UUID sessionId, MessageContent messageContent) {
         // create new message entity if there is no tuple in database
         addMessageContentAndUpdateMessageEntity(sessionId, messageContent);
     }
 
+    @Transactional(rollbackOn = Exception.class)
     @Override
     public MessageEntity saveMessageEntity(SessionEntityDto sessionEntityDto) {
         return createMessageEntity(sessionEntityDto);

@@ -11,28 +11,31 @@ public interface UserMapper {
 
     UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
 
-    UserEntity userDtoToUserEntity(UserEntityDto userDto);
+    UserEntity userDtoToUserEntity(final UserEntityDto userDto);
 
-    UserEntityDto userEntityToUserDto(UserEntity userEntity);
+    UserEntityDto userEntityToUserDto(final UserEntity userEntity);
 
-    default List<UserEntity> userDtoListToUserEntityList(List<UserEntityDto> userEntityDtoList){
+    default List<UserEntity> userDtoListToUserEntityList(final List<UserEntityDto> userEntityDtoList){
 
-        List<UserEntity> userEntityList = new ArrayList<>();
+        //TODO
 
-        for (UserEntityDto userEntityDto : userEntityDtoList) {
-            UserEntity userEntity = userDtoToUserEntity(userEntityDto);
-            userEntityList.add(userEntity);
-        }
+        final List<UserEntity> userEntityList = new ArrayList<>();
+
+        userEntityDtoList.forEach(userEntityDto -> {
+            userEntityList.add(userDtoToUserEntity(userEntityDto));
+        });
         return userEntityList;
     }
 
-    default List<UserEntityDto> userEntityListToUserDtoList(List<UserEntity> userEntityList){
+    default List<UserEntityDto> userEntityListToUserDtoList(final List<UserEntity> userEntityList){
 
-        List<UserEntityDto> userEntityDtoList = new ArrayList<>();
+        //TODO
 
-        for (UserEntity userEntity : userEntityList) {
+        final List<UserEntityDto> userEntityDtoList = new ArrayList<>();
+
+        userEntityList.forEach(userEntity -> {
             userEntityDtoList.add(userEntityToUserDto(userEntity));
-        }
+        });
         return userEntityDtoList;
     }
 }

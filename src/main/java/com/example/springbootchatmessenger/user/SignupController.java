@@ -1,6 +1,7 @@
 package com.example.springbootchatmessenger.user;
 
 
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -15,47 +16,45 @@ import java.util.Optional;
  * this class will open signup page and will add a user to database
  */
 
-@Slf4j
 @RestController
 @RequestMapping("/signup")
+@Slf4j
 public class SignupController {
 
     private final ResourceLoader resourceLoader;
     private final UserService userService;
-    public SignupController(ResourceLoader resourceLoader,
-                            UserService userService) {
+
+    public SignupController(final ResourceLoader resourceLoader,
+                            final UserService userService) {
         this.resourceLoader = resourceLoader;
         this.userService = userService;
     }
 
-
     @GetMapping
-    public ResponseEntity<Resource> signUp() {
+    public ResponseEntity<Resource> signupPage() {
+        Resource resource = resourceLoader.getResource("classpath:templates/signup.html");
 
-        String RESOURCE = "classpath:templates/signUp.html";
-        Resource resource = resourceLoader.getResource(RESOURCE);
-        //  check the resource is correct or no
         if (resource.exists()) {
-            // return response object
             return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_TYPE,"text/html")
+                    .header(HttpHeaders.CONTENT_TYPE, "text/html")
                     .body(resource);
         }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
+    @PostMapping
+    public ResponseEntity<?> createUser(@Valid @RequestBody final UserEntityDto user) {
+        try {
+            Optional<UserEntityDto> userEntityDto = Optional.ofNullable(userService.save(user));
 
-    /*
-     * this endpoint will create new user
-     */
-    @PostMapping()
-    public ResponseEntity<?> createUser(@RequestBody UserEntityDto user) {
-        final Optional<UserEntityDto> userEntityDto = Optional.ofNullable(userService.save(user));
-
-        if (userEntityDto.isPresent()) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(userEntityDto.get());
+            if (userEntityDto.isPresent()) {
+                return ResponseEntity.status(HttpStatus.CREATED).body(userEntityDto.get());
+            } else {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("User could not be created.");
+            }
+        } catch (Exception e) {
+            log.error("Error while creating user", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred.");
         }
-        log.error("User creation failed");
-        return ResponseEntity.status(HttpStatus.CONFLICT).build();
     }
 }

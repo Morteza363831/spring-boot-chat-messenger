@@ -1,17 +1,18 @@
 package com.example.springbootchatmessenger.user;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface UserService {
 
 
-    UserEntityDto save(UserEntityDto userEntityDto);
+    UserEntityDto save(final UserEntityDto userEntityDto);
 
-    UserEntityDto getUserById(Long id);
+    UserEntityDto getUserById(final UUID uuid);
 
-    void deleteUserById(Long id);
+    void deleteUserById(final UUID uuid);
 
     List<UserEntityDto> getAllUsers();
 
-    UserEntityDto getUserByUsername(String username);
+    UserEntityDto getUserByUsername(final String username);
 }
