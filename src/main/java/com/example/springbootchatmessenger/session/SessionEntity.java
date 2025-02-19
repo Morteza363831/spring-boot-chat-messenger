@@ -29,24 +29,23 @@ public class SessionEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(nullable = false)
     private UUID id;
-
-    /*private String username1;
-    private String username2;*/
-
     @ManyToMany
     @JoinTable(name = "sessions_userEntities",
             joinColumns = @JoinColumn(name = "sessionEntity_id"),
             inverseJoinColumns = @JoinColumn(name = "userEntities_id"))
     @ToString.Exclude
     private Set<UserEntity> userEntities = new LinkedHashSet<>();
-
     @OneToOne(mappedBy = "sessionEntity", orphanRemoval = true)
     private MessageEntity messageEntity;
 
+    // PUBLIC Methods
     public void addUser(UserEntity userEntity) {
 
         if (userEntities.size() >= 2) {
+
+            //TODO
             log.error("A session can only have two users");
             return;
         }
@@ -54,13 +53,17 @@ public class SessionEntity {
     }
 
     public void removeUser(UserEntity userEntity) {
-        userEntities.remove(userEntity);
+        userEntities.stream().filter(user -> user.getId().equals(userEntity.getId())).findFirst().ifPresent(user -> {
+            userEntities.remove(user);
+        });
     }
 
     @PrePersist
     @PreUpdate
     public void validateUsers() {
         if (userEntities.size() > 2) {
+
+            //TODO
             throw new IllegalStateException("A session must have exactly two users.");
         }
     }
