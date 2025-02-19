@@ -30,7 +30,7 @@ public class SessionTempController {
     }
 
     @GetMapping
-    public ResponseEntity<SessionEntityDto> getSession(@RequestParam Long firstUserId, @RequestParam Long secondUserId) {
-        return ResponseEntity.ok(sessionService.findByUserIds(firstUserId, secondUserId));
+    public ResponseEntity<SessionEntityDto> getSession(@RequestParam String sender, @RequestParam String receiver) {
+        return ResponseEntity.ok(sessionService.findByUserIds(sender, receiver));
     }
 }
