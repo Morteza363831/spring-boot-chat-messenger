@@ -7,11 +7,11 @@ import java.util.UUID;
 
 public interface MessageService {
 
-    void saveMessage(UUID sessionId, MessageContent messageContent);
+    void saveMessage(final UUID sessionId,final MessageContent messageContent);
 
-    MessageEntity saveMessageEntity(SessionEntityDto sessionEntityDto);
+    MessageEntity saveMessageEntity(final SessionEntityDto sessionEntityDto);
 
     MessageContent findById(Long id);
 
-    List<MessageContent> findAll(SessionEntityDto sessionEntityDto);
+    List<MessageContent> findAll(final SessionEntityDto sessionEntityDto);
 }
