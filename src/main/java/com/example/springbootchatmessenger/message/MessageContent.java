@@ -3,11 +3,13 @@ package com.example.springbootchatmessenger.message;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
+import java.util.UUID;
+
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MessageContent {
 
-    private Long senderUserId;
-    private Long receiverUserId;
+    private UUID senderUserId;
+    private UUID receiverUserId;
     private String content;
 }
