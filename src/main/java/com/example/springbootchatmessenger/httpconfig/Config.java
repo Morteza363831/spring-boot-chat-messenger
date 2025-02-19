@@ -4,7 +4,6 @@ package com.example.springbootchatmessenger.httpconfig;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
@@ -18,7 +17,6 @@ import java.net.http.HttpClient;
  */
 
 @Configuration
-@ComponentScan(basePackages = "com.example")
 public class Config {
 
     @Bean
