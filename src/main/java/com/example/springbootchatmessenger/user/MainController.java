@@ -1,5 +1,6 @@
 package com.example.springbootchatmessenger.user;
 
+import com.example.springbootchatmessenger.exceptions.CustomEntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -45,17 +46,5 @@ public class MainController {
                     .body(resource);
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-    }
-
-    @GetMapping("/")
-    public ResponseEntity<?> getUsers() {
-        final List<UserEntityDto> userEntityDtos = userService.getAllUsers();
-        final List<String> userList = new ArrayList<>();
-        userEntityDtos.forEach(userEntityDto -> userList.add(userEntityDto.getUsername()));
-        if (userEntityDtos != null) {
-            return ResponseEntity.ok(userList);
-        }
-        log.info("No users found");
-        return ResponseEntity.notFound().build();
     }
 }

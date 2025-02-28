@@ -1,12 +1,16 @@
 package com.example.springbootchatmessenger.session;
 
 
+import com.example.springbootchatmessenger.exceptions.CustomValidationException;
+import com.example.springbootchatmessenger.exceptions.EntityAlreadyExistException;
+import com.example.springbootchatmessenger.message.MessageMapper;
 import com.example.springbootchatmessenger.message.MessageService;
-import com.example.springbootchatmessenger.user.UserEntity;
-import com.example.springbootchatmessenger.user.UserEntityDto;
+import com.example.springbootchatmessenger.user.UserDto;
 import com.example.springbootchatmessenger.user.UserMapper;
 import com.example.springbootchatmessenger.user.UserService;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Validator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -25,49 +29,88 @@ public class SessionServiceImpl implements SessionService {
     private final SessionRepository sessionRepository;
     private final MessageService messageService;
     private final UserService userService;
+    private final Validator validator;
 
     public SessionServiceImpl(final SessionRepository sessionRepository,
                               final UserService userService,
-                              final MessageService messageService) {
+                              final MessageService messageService,
+                              final Validator validator) {
         this.sessionRepository = sessionRepository;
         this.userService = userService;
         this.messageService = messageService;
+        this.validator = validator;
     }
 
 
 
     @Transactional(rollbackOn = Exception.class)
     @Override
-    public SessionEntityDto save(final SessionEntityDto sessionEntityDto) {
-        SessionEntity sessionEntity = SessionMapper.INSTANCE.sessionDtoToSessionEntity(sessionEntityDto);
-        messageService.saveMessageEntity(SessionMapper.INSTANCE.sessionEntityToSessionDto(sessionEntity));
+    public SessionDto save(final SessionCreateDto sessionCreateDto) {
+
+        validate(sessionCreateDto);
+
+        final UserDto firstUser = userService.getUserByUsername(sessionCreateDto.getUser1());
+        final UserDto secondUser = userService.getUserByUsername(sessionCreateDto.getUser2());
+
+        // Check is session existence
+        sessionRepository.findExistingSession(firstUser.getId(), secondUser.getId())
+                .ifPresent(existing -> {
+                    throw new EntityAlreadyExistException(existing.getId().toString());
+                });
+
+        // Create and save session
+        SessionEntity sessionEntity = SessionEntity.createSession(UserMapper.INSTANCE.toEntity(firstUser), UserMapper.INSTANCE.toEntity(secondUser));
+
+        sessionEntity = sessionRepository.save(sessionEntity);
+
+        sessionEntity.setMessageEntity(MessageMapper.INSTANCE.toEntity(messageService.saveMessageEntity(sessionEntity.getId())));
+
         return SessionMapper.INSTANCE.sessionEntityToSessionDto(sessionRepository.save(sessionEntity));
     }
 
-    @Override
-    public SessionEntityDto findByUserIds(final String firstUsername,final String secondUsername) {
-        final UserEntityDto firstUser = userService.getUserByUsername(firstUsername);
-        final UserEntityDto secondUser = userService.getUserByUsername(secondUsername);
-        final List<SessionEntity> sessionEntityList = sessionRepository.findSessionEntityByUserEntities(List.of(firstUser.getId(),secondUser.getId()), 2L);
-        final List<SessionEntityDto> sessionEntityDtoList = new ArrayList<>();
 
-        if (sessionEntityList.size() > 0) {
-            sessionEntityList.forEach(sessionEntity -> {
-                sessionEntityDtoList.add(SessionMapper.INSTANCE.sessionEntityToSessionDto(sessionEntity));
-            });
-        }
-        else {
-            final SessionEntityDto sessionEntityDto = getSessionEntityDto(firstUser, secondUser);
-            sessionEntityDtoList.add(save(sessionEntityDto));
-        }
-        return sessionEntityDtoList.get(0);
+    @Transactional(rollbackOn = Exception.class)
+    @Override
+    public SessionDto findByUserIds(final SessionFindDto sessionFindDto) {
+
+        validate(sessionFindDto);
+
+        // find users by their usernames
+        final UserDto firstUser = userService.getUserByUsername(sessionFindDto.getUser1());
+        final UserDto secondUser = userService.getUserByUsername(sessionFindDto.getUser2());
+
+        return sessionRepository.findExistingSession(firstUser.getId(), secondUser.getId())
+                .map(SessionMapper.INSTANCE::sessionEntityToSessionDto)
+                .orElseGet(() -> save(SessionMapper.INSTANCE.findDtoToCreateDto(sessionFindDto)));
     }
 
-    private static SessionEntityDto getSessionEntityDto(final UserEntityDto firstUser, final UserEntityDto secondUser) {
-        final SessionEntityDto sessionEntityDto = new SessionEntityDto();
-        final Set<UserEntity> userEntities = new HashSet<>();
-        userEntities.addAll(List.of(UserMapper.INSTANCE.userDtoToUserEntity(firstUser), UserMapper.INSTANCE.userDtoToUserEntity(secondUser)));
-        sessionEntityDto.setUserEntities(userEntities);
-        return sessionEntityDto;
+    @Override
+    public SessionDto findBySessionId(final UUID id) {
+        return sessionRepository
+                .findById(id)
+                .map(SessionMapper.INSTANCE::sessionEntityToSessionDto)
+                .orElseThrow(() -> new EntityNotFoundException(id.toString()));
+    }
+
+    @Override
+    public void deleteSession(SessionDeleteDto sessionDeleteDto) {
+
+        validate(sessionDeleteDto);
+
+        final Optional<SessionEntity> sessionEntityOptional = sessionRepository.findById(sessionDeleteDto.getId());
+
+        if (sessionEntityOptional.isEmpty()) {
+            throw new EntityNotFoundException(sessionDeleteDto.getId().toString());
+        }
+
+        sessionRepository.delete(sessionEntityOptional.get());
+    }
+
+    private void validate(Object dto) {
+        List<String> violations = new ArrayList<>();
+        validator.validate(dto).forEach(field -> violations.add(field.getMessage()));
+        if (!violations.isEmpty()) {
+            throw new CustomValidationException(violations);
+        }
     }
 }

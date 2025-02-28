@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /*
@@ -22,9 +22,12 @@ public interface SessionRepository extends JpaRepository<SessionEntity, UUID> {
      * this query will get session for two users
      * we can use this session to open the chat page (using chat id)
      */
-    @Query("SELECT s FROM SessionEntity s JOIN FETCH s.userEntities WHERE s.id IN " +
-            "(SELECT s1.id FROM SessionEntity s1 JOIN s1.userEntities u WHERE u.id IN (:userIds) " +
-            "GROUP BY s1 HAVING COUNT(u.id) = :size)")
-    @Transactional(value = Transactional.TxType.REQUIRES_NEW,rollbackOn = Exception.class)
-    List<SessionEntity> findSessionEntityByUserEntities(@Param("userIds") List<UUID> userIds, @Param("size") Long size);
+
+    @Transactional(rollbackOn = Exception.class)
+    @Query("""
+        SELECT s FROM SessionEntity s
+        WHERE (s.user1.id = :user1Id AND s.user2.id = :user2Id)
+           OR (s.user1.id = :user2Id AND s.user2.id = :user1Id)
+    """)
+    Optional<SessionEntity> findExistingSession(@Param("user1Id") UUID user1Id, @Param("user2Id") UUID user2Id);
 }
