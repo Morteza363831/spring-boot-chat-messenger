@@ -1,14 +1,12 @@
 package com.example.springbootchatmessenger.message;
 
 
-import com.example.springbootchatmessenger.session.SessionEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import java.util.Objects;
 import java.util.UUID;
 
 /*
@@ -19,7 +17,6 @@ import java.util.UUID;
  * receiver to store receiver username
  * --> this structure helps us find messages between to users
  */
-
 @Entity
 @Table(name = "messages")
 @Getter
@@ -28,7 +25,6 @@ import java.util.UUID;
 @AllArgsConstructor
 public class MessageEntity {
 
-    @NotNull(message = "Message Id cannot be null")
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(nullable = false)
@@ -39,26 +35,13 @@ public class MessageEntity {
     @JdbcTypeCode(SqlTypes.BLOB)
     private byte[] content;
 
-    @NotNull(message = "Session Id cannot be null for Message")
-    @OneToOne(orphanRemoval = true)
-    @JoinColumn
-    private SessionEntity sessionEntity;
+    @NotNull
+    @Column(name = "session_id", unique = true, nullable = false)
+    private UUID sessionId; // Store only session ID
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        MessageEntity that = (MessageEntity) o;
-        return Objects.equals(id, that.id) && Objects.equals(content, that.content) && Objects.equals(sessionEntity, that.sessionEntity);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, content, sessionEntity);
-    }
 
     public String getContent() {
-        return new String(content);
+        return content != null ? new String(content) : "";
     }
 
     public void setContent(String content) {
