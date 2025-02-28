@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/session")
+@RequestMapping("/api/v1/session")
 @Slf4j
 public class SessionTempController {
 
@@ -18,9 +18,9 @@ public class SessionTempController {
         this.sessionService = sessionService;
     }
 
-    @PostMapping
-    public ResponseEntity<?> createSession(@RequestBody SessionEntityDto session) {
-        final Optional<SessionEntityDto> sessionEntityDto = Optional.ofNullable(sessionService.save(session));
+    @PostMapping("/")
+    public ResponseEntity<?> createSession(@RequestBody SessionCreateDto sessionCreateDto) {
+        final Optional<SessionDto> sessionEntityDto = Optional.ofNullable(sessionService.save(sessionCreateDto));
 
         if (sessionEntityDto.isPresent()) {
             return ResponseEntity.status(HttpStatus.CREATED).body(sessionEntityDto.get());
@@ -29,8 +29,16 @@ public class SessionTempController {
         return ResponseEntity.status(HttpStatus.CONFLICT).build();
     }
 
-    @GetMapping
-    public ResponseEntity<SessionEntityDto> getSession(@RequestParam String sender, @RequestParam String receiver) {
-        return ResponseEntity.ok(sessionService.findByUserIds(sender, receiver));
+    @GetMapping("/")
+    public ResponseEntity<SessionDto> getSession(@RequestBody SessionFindDto sessionFindDto) {
+        return ResponseEntity.ok(sessionService.findByUserIds(sessionFindDto));
     }
+
+    @DeleteMapping("/")
+    public ResponseEntity<?> deleteSession(@RequestBody SessionDeleteDto sessionDeleteDto) {
+        sessionService.deleteSession(sessionDeleteDto);
+
+        return ResponseEntity.ok().build();
+    }
+
 }
