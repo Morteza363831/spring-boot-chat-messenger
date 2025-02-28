@@ -1,4 +1,4 @@
-package com.example.springbootchatmessenger.chat;
+package com.example.springbootchatmessenger.config;
 
 
 import org.springframework.context.annotation.Configuration;

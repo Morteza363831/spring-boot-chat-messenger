@@ -1,4 +1,4 @@
-package com.example.springbootchatmessenger.httpconfig;
+package com.example.springbootchatmessenger.config;
 
 
 import com.fasterxml.jackson.annotation.JsonInclude;
