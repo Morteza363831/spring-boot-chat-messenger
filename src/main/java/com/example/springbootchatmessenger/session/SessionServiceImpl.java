@@ -1,12 +1,15 @@
 package com.example.springbootchatmessenger.session;
 
 
+import com.example.springbootchatmessenger.exceptions.CustomValidationException;
+import com.example.springbootchatmessenger.exceptions.EntityAlreadyExistException;
 import com.example.springbootchatmessenger.message.MessageService;
-import com.example.springbootchatmessenger.user.UserEntity;
-import com.example.springbootchatmessenger.user.UserEntityDto;
+import com.example.springbootchatmessenger.user.UserDto;
 import com.example.springbootchatmessenger.user.UserMapper;
 import com.example.springbootchatmessenger.user.UserService;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Validator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -25,22 +28,43 @@ public class SessionServiceImpl implements SessionService {
     private final SessionRepository sessionRepository;
     private final MessageService messageService;
     private final UserService userService;
+    private final Validator validator;
 
     public SessionServiceImpl(final SessionRepository sessionRepository,
                               final UserService userService,
-                              final MessageService messageService) {
+                              final MessageService messageService,
+                              final Validator validator) {
         this.sessionRepository = sessionRepository;
         this.userService = userService;
         this.messageService = messageService;
+        this.validator = validator;
     }
 
 
 
     @Transactional(rollbackOn = Exception.class)
     @Override
-    public SessionEntityDto save(final SessionEntityDto sessionEntityDto) {
-        SessionEntity sessionEntity = SessionMapper.INSTANCE.sessionDtoToSessionEntity(sessionEntityDto);
-        messageService.saveMessageEntity(SessionMapper.INSTANCE.sessionEntityToSessionDto(sessionEntity));
+    public SessionDto save(final SessionCreateDto sessionCreateDto) {
+
+        validate(sessionCreateDto);
+
+        final UserDto firstUser = userService.getUserByUsername(sessionCreateDto.getUser1());
+        final UserDto secondUser = userService.getUserByUsername(sessionCreateDto.getUser2());
+
+        // Check is session existence
+        sessionRepository.findExistingSession(firstUser.getId(), secondUser.getId())
+                .ifPresent(existing -> {
+                    throw new EntityAlreadyExistException(existing.getId().toString());
+                });
+
+        // Create and save session
+        SessionEntity sessionEntity = SessionEntity.createSession(UserMapper.INSTANCE.toEntity(firstUser), UserMapper.INSTANCE.toEntity(secondUser));
+
+        sessionEntity = sessionRepository.save(sessionEntity);
+
+        sessionEntity.setMessageEntity(messageService.saveMessageEntity(sessionEntity.getId())
+        );
+
         return SessionMapper.INSTANCE.sessionEntityToSessionDto(sessionRepository.save(sessionEntity));
     }
 

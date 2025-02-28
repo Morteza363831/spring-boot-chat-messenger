@@ -4,7 +4,9 @@ import java.util.UUID;
 
 public interface SessionService {
 
-    SessionEntityDto save(final SessionEntityDto sessionEntityDto);
+    SessionDto save(final SessionCreateDto sessionCreateDto);
+
+    SessionDto findByUserIds(final SessionFindDto sessionFindDto);
 
     SessionDto findBySessionId(final UUID sessionId);
 
