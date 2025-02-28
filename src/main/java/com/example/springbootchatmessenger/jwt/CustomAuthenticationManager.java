@@ -31,7 +31,7 @@ public class CustomAuthenticationManager implements AuthenticationManager {
     @Override
     public Authentication authenticate(final Authentication authentication) throws AuthenticationException {
 
-        final Optional<UserEntity> userEntityOptional = Optional.ofNullable(userRepository.findByUsername(authentication.getName()));
+        final Optional<UserEntity> userEntityOptional = userRepository.findByUsername(authentication.getName());
 
         if (userEntityOptional.isPresent()) {
             UserEntity userEntity = userEntityOptional.get();

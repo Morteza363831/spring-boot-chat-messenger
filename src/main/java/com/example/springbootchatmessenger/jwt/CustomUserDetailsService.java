@@ -29,7 +29,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
 
-        final Optional<UserEntity> optionalUserEntity = Optional.ofNullable(userRepository.findByUsername(username));
+        final Optional<UserEntity> optionalUserEntity = userRepository.findByUsername(username);
 
         User.UserBuilder userBuilder = null;
 
