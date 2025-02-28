@@ -2,6 +2,7 @@ package com.example.springbootchatmessenger.exceptions.handler;
 
 import com.example.springbootchatmessenger.exceptions.BaseException;
 import com.example.springbootchatmessenger.exceptions.CustomValidationException;
+import com.example.springbootchatmessenger.structure.ResponseResult;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -11,7 +12,6 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.Date;
 
 
 @RestControllerAdvice
@@ -19,28 +19,40 @@ import java.util.Date;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(BaseException.class)
-    public ResponseEntity<ErrorResponse> handleCustomException(final BaseException e,final HttpServletRequest request) {
+    public ResponseEntity<?> handleCustomException(final BaseException e,final HttpServletRequest request) {
         return buildErrorResponse(e, e.getStatus(), request);
     }
 
     @ExceptionHandler(value = CustomValidationException.class)
-    public ResponseEntity<ErrorResponse> handleCustomException(final CustomValidationException e,final HttpServletRequest request) {
+    public ResponseEntity<?> handleCustomException(final CustomValidationException e,final HttpServletRequest request) {
         log.error("{}, {}", e.getMessage(), e.errors.toString());
         return ResponseEntity
                 .status(e.getStatus())
-                .body(new ErrorResponse(e.getClass().getSimpleName(), e.getStatus().value(), e.getMessage(), request.getRequestURI(), e.getTimestamp(), e.errors.toString()));
+                .body(new ResponseResult<>(
+                        "failure",
+                        e.getStatus().value(),
+                        e.getMessage(),
+                        e.errors,
+                        request.getRequestURI()
+                ));
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGeneralException(final Exception e,final HttpServletRequest request) {
+    public ResponseEntity<?> handleGeneralException(final Exception e,final HttpServletRequest request) {
         return buildErrorResponse(e, HttpStatus.INTERNAL_SERVER_ERROR , request);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException e, HttpServletRequest request) {
+    public ResponseEntity<?> handleDataIntegrityViolationException(DataIntegrityViolationException e, HttpServletRequest request) {
         return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(new ErrorResponse(e.getClass().getSimpleName(), HttpStatus.CONFLICT.value(), "Database constraint", request.getRequestURI(),  new Date(), extractConstraintError(e)));
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ResponseResult<>(
+                        "failure",
+                        HttpStatus.BAD_REQUEST.value(),
+                        "Error occurred",
+                        e.getMessage(),
+                        request.getRequestURI()
+                ));
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -49,18 +61,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid JSON input.");
     }
 
-    private ResponseEntity<ErrorResponse> buildErrorResponse(Exception e, HttpStatus status, HttpServletRequest request) {
+    private ResponseEntity<?> buildErrorResponse(Exception e, HttpStatus status, HttpServletRequest request) {
         log.error("Error occurred: {}", e.getMessage());
-        return ResponseEntity.status(status).body(
-                new ErrorResponse(
-                        e.getClass().getSimpleName(),
+        return ResponseEntity
+                .status(status)
+                .body(new ResponseResult<>(
+                        "failure",
                         status.value(),
-                        extractConstraintError(e),
-                        request.getRequestURI(),
-                        new Date(),
-                        ""
-                )
-        );
+                        "Error occurred",
+                        e.getMessage(),
+                        request.getRequestURI()
+                ));
     }
 
     private String extractConstraintError(Exception e) {

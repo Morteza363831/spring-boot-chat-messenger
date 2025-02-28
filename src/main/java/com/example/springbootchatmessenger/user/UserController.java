@@ -1,9 +1,8 @@
 package com.example.springbootchatmessenger.user;
 
 import com.example.springbootchatmessenger.exceptions.*;
+import com.example.springbootchatmessenger.structure.ResponseResult;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -16,12 +15,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Optional;
 
 @Tag(name = "User Management", description = "Operations related to user management")
 @RestController
-@RequestMapping("/api/v1/user")
+@RequestMapping("/api/v1/users")
 @Slf4j
 public class UserController {
 
@@ -55,31 +53,28 @@ public class UserController {
     @ApiResponse(responseCode = "409", description = "Duplicate user violation")
     @ApiResponse(responseCode = "400", description = "Validation failed")
     @ApiResponse(responseCode = "500", description = "Internal error")
-    @PostMapping("/")
-    public ResponseEntity<?> createUser(
-            @RequestBody
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "User creation data",
-                    content = @Content(
-                            examples = @ExampleObject(
-                                    name = "User Example",
-                                    value = "{\"username\": \"john_doe\", \"password\": \"securePassword\"}"
-                            )
-                    )
-            )
-            final UserCreateDto user) {
+    @PostMapping("/register")
+    public ResponseEntity<ResponseResult<UserDto>> registerUser(@RequestBody final UserCreateDto user) {
 
         Optional<UserDto> userEntityDtoOptional = Optional.ofNullable(userService.save(user));
         if (userEntityDtoOptional.isPresent()) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(userEntityDtoOptional.get());
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body(new ResponseResult<>(
+                            "success",
+                            HttpStatus.CREATED.value(),
+                            "User registered successfully",
+                            userEntityDtoOptional.get(),
+                            "/api/v1/users/register"
+                    ));
         } else {
             throw new InternalServerException("User could not be created.");
         }
     }
 
     @Operation(summary = "Update user details", description = "Updates the details of an existing user")
-    @SecurityRequirement(name = "bearerToken")
-    @ApiResponse(responseCode = "200", description = "Successful")
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponse(responseCode = "204", description = "Successful")
     @ApiResponse(responseCode = "400", description = "Validation failed or Entity not found")
     @ApiResponse(responseCode = "500", description = "Internal error")
     @PutMapping("/{username}")
@@ -87,35 +82,67 @@ public class UserController {
             @PathVariable String username,
             @RequestBody UserUpdateDto user) {
         userService.updateUser(username, user);
-        return ResponseEntity.ok().build();
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .body(new ResponseResult<>(
+                        "success",
+                        HttpStatus.NO_CONTENT.value(),
+                        "User updated successfully",
+                        new Object(),
+                        "/api/v1/users/update"
+                ));
     }
 
     @Operation(summary = "Get all users", description = "Retrieves a list of all users")
     @SecurityRequirement(name = "bearerToken")
     @ApiResponse(responseCode = "200", description = "Successful")
     @GetMapping
-    public ResponseEntity<List<UserDto>> getUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+    public ResponseEntity<?> getUsers() {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new ResponseResult<>(
+                        "Success",
+                        HttpStatus.OK.value(),
+                        "User founded successfully",
+                        userService.getAllUsers(),
+                        "/api/v1/users/get"
+                ));
     }
 
     @Operation(summary = "Get user by username", description = "Finds a user by their username")
-    @SecurityRequirement(name = "bearerToken")
+    @SecurityRequirement(name = "bearerAuth")
     @ApiResponse(responseCode = "200", description = "Successful")
     @ApiResponse(responseCode = "400", description = "Validation failed or Entity not found")
     @ApiResponse(responseCode = "500", description = "Internal error")
     @GetMapping("/{username}")
-    public ResponseEntity<UserDto> getUser(@PathVariable final String username) {
-        return ResponseEntity.ok(userService.getUserByUsername(username));
+    public ResponseEntity<?> getUser(@PathVariable final String username) {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new ResponseResult<>(
+                        "Success",
+                        HttpStatus.OK.value(),
+                        "User founded successfully",
+                        userService.getUserByUsername(username),
+                        "/api/v1/users/get"
+                ));
     }
 
     @Operation(summary = "Delete a user", description = "Deletes a user from the system")
-    @SecurityRequirement(name = "bearerToken")
+    @SecurityRequirement(name = "bearerAuth")
     @ApiResponse(responseCode = "200", description = "Successful")
     @ApiResponse(responseCode = "400", description = "Validation failed or Entity not found")
     @ApiResponse(responseCode = "500", description = "User creation failed")
-    @DeleteMapping("/")
+    @DeleteMapping("/delete")
     public ResponseEntity<?> deleteUser(@RequestBody final UserDeleteDto userDeleteDto) {
         userService.deleteUserById(userDeleteDto);
-        return ResponseEntity.ok().build();
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new ResponseResult<>(
+                        "Success",
+                        HttpStatus.OK.value(),
+                        "User founded successfully",
+                        new Object(),
+                        "/api/v1/users/get"
+                ));
     }
 }
