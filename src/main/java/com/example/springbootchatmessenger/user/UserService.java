@@ -6,13 +6,15 @@ import java.util.UUID;
 public interface UserService {
 
 
-    UserEntityDto save(final UserEntityDto userEntityDto);
+    UserDto save(final UserCreateDto userCreateDto);
 
-    UserEntityDto getUserById(final UUID uuid);
+    void updateUser(final String username, final UserUpdateDto userUpdateDto);
 
-    void deleteUserById(final UUID uuid);
+    UserDto getUserById(final UUID uuid);
 
-    List<UserEntityDto> getAllUsers();
+    void deleteUserById(final UserDeleteDto userDeleteDto);
 
-    UserEntityDto getUserByUsername(final String username);
+    List<UserDto> getAllUsers();
+
+    UserDto getUserByUsername(final String username);
 }
