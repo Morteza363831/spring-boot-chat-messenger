@@ -71,17 +71,16 @@ public class SessionServiceImpl implements SessionService {
 
     @Transactional(rollbackOn = Exception.class)
     @Override
-    public SessionDto findByUserIds(final SessionFindDto sessionFindDto) {
+    public SessionDto findByUserIds(final String user1 , String user2) {
 
-        validate(sessionFindDto);
 
         // find users by their usernames
-        final UserDto firstUser = userService.getUserByUsername(sessionFindDto.getUser1());
-        final UserDto secondUser = userService.getUserByUsername(sessionFindDto.getUser2());
+        final UserDto firstUser = userService.getUserByUsername(user1);
+        final UserDto secondUser = userService.getUserByUsername(user2);
 
         return sessionRepository.findExistingSession(firstUser.getId(), secondUser.getId())
                 .map(SessionMapper.INSTANCE::sessionEntityToSessionDto)
-                .orElseGet(() -> save(SessionMapper.INSTANCE.findDtoToCreateDto(sessionFindDto)));
+                .orElseGet(() -> save(new SessionCreateDto(user1, user2)));
     }
 
     @Override
