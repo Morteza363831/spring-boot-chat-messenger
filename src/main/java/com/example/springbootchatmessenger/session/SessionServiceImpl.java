@@ -44,12 +44,12 @@ public class SessionServiceImpl implements SessionService {
         return SessionMapper.INSTANCE.sessionEntityToSessionDto(sessionRepository.save(sessionEntity));
     }
 
+
+    @Transactional(rollbackOn = Exception.class)
     @Override
-    public SessionEntityDto findByUserIds(final String firstUsername,final String secondUsername) {
-        final UserEntityDto firstUser = userService.getUserByUsername(firstUsername);
-        final UserEntityDto secondUser = userService.getUserByUsername(secondUsername);
-        final List<SessionEntity> sessionEntityList = sessionRepository.findSessionEntityByUserEntities(List.of(firstUser.getId(),secondUser.getId()), 2L);
-        final List<SessionEntityDto> sessionEntityDtoList = new ArrayList<>();
+    public SessionDto findByUserIds(final SessionFindDto sessionFindDto) {
+
+        validate(sessionFindDto);
 
         if (sessionEntityList.size() > 0) {
             sessionEntityList.forEach(sessionEntity -> {
@@ -61,13 +61,30 @@ public class SessionServiceImpl implements SessionService {
             sessionEntityDtoList.add(save(sessionEntityDto));
         }
         return sessionEntityDtoList.get(0);
+        // find users by their usernames
+        final UserDto firstUser = userService.getUserByUsername(sessionFindDto.getUser1());
+        final UserDto secondUser = userService.getUserByUsername(sessionFindDto.getUser2());
+
+        return sessionRepository.findExistingSession(firstUser.getId(), secondUser.getId())
+                .map(SessionMapper.INSTANCE::sessionEntityToSessionDto)
+                .orElseGet(() -> save(SessionMapper.INSTANCE.findDtoToCreateDto(sessionFindDto)));
     }
 
-    private static SessionEntityDto getSessionEntityDto(final UserEntityDto firstUser, final UserEntityDto secondUser) {
-        final SessionEntityDto sessionEntityDto = new SessionEntityDto();
-        final Set<UserEntity> userEntities = new HashSet<>();
-        userEntities.addAll(List.of(UserMapper.INSTANCE.userDtoToUserEntity(firstUser), UserMapper.INSTANCE.userDtoToUserEntity(secondUser)));
-        sessionEntityDto.setUserEntities(userEntities);
-        return sessionEntityDto;
+    @Override
+    public SessionDto findBySessionId(final UUID id) {
+        return sessionRepository
+                .findById(id)
+                .map(SessionMapper.INSTANCE::sessionEntityToSessionDto)
+                .orElseThrow(() -> new EntityNotFoundException(id.toString()));
+    }
+
+    }
+
+    private void validate(Object dto) {
+        List<String> violations = new ArrayList<>();
+        validator.validate(dto).forEach(field -> violations.add(field.getMessage()));
+        if (!violations.isEmpty()) {
+            throw new CustomValidationException(violations);
+        }
     }
 }
