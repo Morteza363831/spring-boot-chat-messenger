@@ -3,6 +3,7 @@ package com.example.springbootchatmessenger.session;
 
 import com.example.springbootchatmessenger.exceptions.CustomValidationException;
 import com.example.springbootchatmessenger.exceptions.EntityAlreadyExistException;
+import com.example.springbootchatmessenger.message.MessageMapper;
 import com.example.springbootchatmessenger.message.MessageService;
 import com.example.springbootchatmessenger.user.UserDto;
 import com.example.springbootchatmessenger.user.UserMapper;
@@ -62,8 +63,7 @@ public class SessionServiceImpl implements SessionService {
 
         sessionEntity = sessionRepository.save(sessionEntity);
 
-        sessionEntity.setMessageEntity(messageService.saveMessageEntity(sessionEntity.getId())
-        );
+        sessionEntity.setMessageEntity(MessageMapper.INSTANCE.toEntity(messageService.saveMessageEntity(sessionEntity.getId())));
 
         return SessionMapper.INSTANCE.sessionEntityToSessionDto(sessionRepository.save(sessionEntity));
     }

@@ -1,6 +1,7 @@
 package com.example.springbootchatmessenger.session;
 
 import com.example.springbootchatmessenger.exceptions.SessionUserSizeException;
+import com.example.springbootchatmessenger.message.MessageContentList;
 import com.example.springbootchatmessenger.message.MessageEntity;
 import com.example.springbootchatmessenger.user.UserEntity;
 import jakarta.persistence.*;

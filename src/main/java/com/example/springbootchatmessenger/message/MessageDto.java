@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Value;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 /**
  * DTO for {@link MessageEntity}
@@ -12,6 +13,7 @@ import java.io.Serializable;
 @Value
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MessageDto implements Serializable {
-    @NotNull(message = "Content cannot be null")
+
+    UUID id;
     String content;
 }
