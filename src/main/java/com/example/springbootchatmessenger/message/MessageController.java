@@ -1,22 +1,23 @@
 package com.example.springbootchatmessenger.message;
 
+import com.example.springbootchatmessenger.structure.ResponseResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
 @Tag(name = "Message Management", description = "Operations for sending and retrieving messages")
 @RestController
-@RequestMapping("/api/v1/message")
+@RequestMapping("/api/v1/messages")
 @SecurityRequirement(name = "bearerAuth")
 public class MessageController {
 
@@ -43,9 +44,16 @@ public class MessageController {
     @ApiResponse(responseCode = "200", description = "Messages retrieved successfully")
     @ApiResponse(responseCode = "404", description = "Session not found")
     @GetMapping("/{sessionId}")
-    public ResponseEntity<List<MessageContent>> getAllMessages(@PathVariable UUID sessionId) {
-        final List<MessageContent> messages = messageService.findAll(sessionId);
-        return ResponseEntity.ok(messages);
+    public ResponseEntity<?> getAllMessages(@PathVariable UUID sessionId) {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new ResponseResult<>(
+                        "success",
+                        HttpStatus.OK.value(),
+                        "Messages founded successfully",
+                        messageService.findAll(sessionId),
+                        "/api/v1/messages/" + sessionId
+                ));
     }
 
     @Operation(summary = "Store a message", description = "Stores a message in the database for a session")
