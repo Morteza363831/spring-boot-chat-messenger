@@ -1,9 +1,9 @@
 package com.example.springbootchatmessenger.user;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -42,8 +42,15 @@ public class UserEntity {
 
     @PrePersist
     public void prePersist() {
-        if (authorities == null) {
-            authorities = "ROLE_USER";
+        if (authorities == null || authorities.isEmpty()) {
+             authorities = "ROLE_USER";
+        }
+    }
+
+    @PostPersist
+    public void postPersist() {
+        if (email == null || email.isEmpty()) {
+            throw new DataIntegrityViolationException("Email is required");
         }
     }
 

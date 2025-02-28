@@ -1,6 +1,9 @@
 package com.example.springbootchatmessenger.user;
 
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.factory.Mappers;
 
 import java.util.ArrayList;
@@ -11,31 +14,44 @@ public interface UserMapper {
 
     UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
 
-    UserEntity userDtoToUserEntity(final UserEntityDto userDto);
+    // dto to entity
 
-    UserEntityDto userEntityToUserDto(final UserEntity userEntity);
+    UserEntity toEntity(final UserDto userDto);
 
-    default List<UserEntity> userDtoListToUserEntityList(final List<UserEntityDto> userEntityDtoList){
+    UserEntity toEntity(final UserUpdateDto userUpdateDto);
+
+    UserEntity toEntity(final UserCreateDto userCreateDto);
+
+    default List<UserEntity> userDtoListToUserEntityList(final List<UserDto> userDtoList) {
 
         //TODO
 
         final List<UserEntity> userEntityList = new ArrayList<>();
 
-        userEntityDtoList.forEach(userEntityDto -> {
-            userEntityList.add(userDtoToUserEntity(userEntityDto));
+        userDtoList.forEach(userEntityDto -> {
+            userEntityList.add(toEntity(userEntityDto));
         });
         return userEntityList;
     }
 
-    default List<UserEntityDto> userEntityListToUserDtoList(final List<UserEntity> userEntityList){
+
+    // entity to dto
+    default List<UserDto> userEntityListToUserDtoList(final List<UserEntity> userEntityList) {
 
         //TODO
 
-        final List<UserEntityDto> userEntityDtoList = new ArrayList<>();
+        final List<UserDto> userDtoList = new ArrayList<>();
 
         userEntityList.forEach(userEntity -> {
-            userEntityDtoList.add(userEntityToUserDto(userEntity));
+            userDtoList.add(toUserDto(userEntity));
         });
-        return userEntityDtoList;
+        return userDtoList;
     }
+
+    UserDto toUserDto(final UserEntity userEntity);
+
+    // partial updates
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    UserEntity partialUpdate(final UserUpdateDto userUpdateDto, @MappingTarget final UserEntity userEntity);
 }
