@@ -1,19 +1,21 @@
 package com.example.springbootchatmessenger.user;
 
+import com.example.springbootchatmessenger.exceptions.CustomEntityNotFoundException;
+import com.example.springbootchatmessenger.exceptions.CustomValidationException;
 import com.example.springbootchatmessenger.jwt.CustomAuthenticationManager;
 import com.example.springbootchatmessenger.jwt.CustomUserDetailsService;
 import com.example.springbootchatmessenger.jwt.JwtTokenUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.protocol.types.Field;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /*
  * open login page
@@ -57,12 +59,15 @@ public class LoginController {
             final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
             final String token = jwtTokenUtil.generateToken(userDetails);
             return ResponseEntity.ok(token);
-        }
-        catch (Exception e) {
-            log.error("Unexpected error occurred");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        } catch (CustomEntityNotFoundException e) {
+            log.error("User not found: {}", username);
+            throw new CustomEntityNotFoundException(username);
+        } catch (Exception e) {
+            log.error("Authentication failed for user: {}", username);
+            throw new CustomValidationException(List.of(e.getMessage()));
         }
     }
+
 
     private void authenticate(final String username,final String password) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
