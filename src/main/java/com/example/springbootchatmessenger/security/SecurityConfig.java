@@ -1,6 +1,5 @@
 package com.example.springbootchatmessenger.security;
 
-//import com.example.springbootchatmessenger.keycloak.GrantedAuthoritiesMapperImpl; <-- to handle roles
 import com.example.springbootchatmessenger.jwt.CustomAuthenticationEntryPoint;
 import com.example.springbootchatmessenger.jwt.CustomAuthenticationManager;
 import com.example.springbootchatmessenger.jwt.JwtRequestFilter;
@@ -9,7 +8,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -43,9 +41,6 @@ import java.io.IOException;
 @EnableWebSecurity
 @Slf4j
 public class SecurityConfig {
-
-
-    /*private final CustomAuthenticationProvider customAuthenticationProvider;*/
 
     private final JwtRequestFilter requestFilter;
 
@@ -99,7 +94,7 @@ public class SecurityConfig {
                 .authenticationManager(authenticationManager())
                 .authorizeHttpRequests(request -> {
                     request
-                            .requestMatchers("/signup", "/login/token", "/signup/create", "/css/signUp.css", "/js/signUp.js")
+                            .requestMatchers("/api/v1/user/**", "/api/v1/user", "/login", "/main/**", "/chat/**",  "/login/token", "/signup/create", "/css/**", "/js/**")
                             .permitAll()
                             .anyRequest()
                             .authenticated();
@@ -107,22 +102,6 @@ public class SecurityConfig {
                 })
                 .addFilterAt(requestFilter, UsernamePasswordAuthenticationFilter.class);
 
-        /*http
-                .authorizeHttpRequests(requests ->
-                        requests.requestMatchers("/signup","/css/signUp.css","/js/signUp.js","/signup/create").permitAll()
-                                .anyRequest().authenticated())
-                .oauth2Login(oauth2 -> {
-                    oauth2
-                            .userInfoEndpoint(userInfoEndpointConfig -> {
-
-                                userInfoEndpointConfig
-                                        .oidcUserService(customAuthenticationProvider);
-                                        //.userAuthoritiesMapper(this.userAuthoritiesMapper()); <-- call custom authority checker
-                            })
-                            .successHandler(authenticationSuccessHandler());
-                })
-                .csrf(AbstractHttpConfigurer::disable);
-*/
         return http.build();
     }
 
