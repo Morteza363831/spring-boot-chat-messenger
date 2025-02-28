@@ -1,6 +1,5 @@
 package com.example.springbootchatmessenger.message;
 
-import com.example.springbootchatmessenger.session.SessionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -12,6 +11,7 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
+@RequestMapping("/api/v1/message")
 public class MessageController {
 
     /*
@@ -22,15 +22,12 @@ public class MessageController {
      */
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final MessageService messageService;
-    private final SessionService sessionService;
 
     // chatController constructor to inject objects
     public MessageController(final SimpMessagingTemplate simpMessagingTemplate,
-                             final MessageService messageService,
-                             final SessionService sessionService) {
+                             final MessageService messageService) {
         this.simpMessagingTemplate = simpMessagingTemplate;// constructor injection
         this.messageService = messageService;
-        this.sessionService = sessionService;
     }
 
     /*
@@ -42,22 +39,21 @@ public class MessageController {
                             final MessageContent chatMessage) {
         messageService.saveMessage(sessionId, chatMessage); // store message in db
         simpMessagingTemplate.convertAndSend("/topic/" + sessionId, chatMessage);
-        log.info("chat id for sender , receiver is : {} , {} , {}", chatMessage.getSenderUserId(), chatMessage.getReceiverUserId(), sessionId);
+        log.info("chat id for sender , receiver is : {} , {} , {}", chatMessage.getSender(), chatMessage.getReceiver(), sessionId);
     }
 
     /*
      * this endpoint will get all messages between to users with their chat id (sessionId)
      */
-    @GetMapping("/messages")
-    public ResponseEntity<List<MessageContent>> getAllMessages(@RequestParam final String sender,
-                                                                 @RequestParam final String receiver) {
-        final List<MessageContent> messages = messageService.findAll(sessionService.findByUserIds(sender, receiver));
+    @GetMapping("/{sessionId}")
+    public ResponseEntity<List<MessageContent>> getAllMessages(@PathVariable UUID sessionId) {
+        final List<MessageContent> messages = messageService.findAll(sessionId);
         return ResponseEntity.ok(messages);
     }
 
-    @PostMapping("/message/{sessionId}")
+    @PostMapping("/{sessionId}")
     public void saveMessage(@PathVariable final UUID sessionId ,
-                            @RequestBody final MessageContent chatMessage) {
-        messageService.saveMessage(sessionId, chatMessage);
+                            @RequestBody final MessageContent messageContent) {
+        messageService.saveMessage(sessionId, messageContent);
     }
 }
