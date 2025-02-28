@@ -51,16 +51,6 @@ public class SessionServiceImpl implements SessionService {
 
         validate(sessionFindDto);
 
-        if (sessionEntityList.size() > 0) {
-            sessionEntityList.forEach(sessionEntity -> {
-                sessionEntityDtoList.add(SessionMapper.INSTANCE.sessionEntityToSessionDto(sessionEntity));
-            });
-        }
-        else {
-            final SessionEntityDto sessionEntityDto = getSessionEntityDto(firstUser, secondUser);
-            sessionEntityDtoList.add(save(sessionEntityDto));
-        }
-        return sessionEntityDtoList.get(0);
         // find users by their usernames
         final UserDto firstUser = userService.getUserByUsername(sessionFindDto.getUser1());
         final UserDto secondUser = userService.getUserByUsername(sessionFindDto.getUser2());
@@ -78,6 +68,18 @@ public class SessionServiceImpl implements SessionService {
                 .orElseThrow(() -> new EntityNotFoundException(id.toString()));
     }
 
+    @Override
+    public void deleteSession(SessionDeleteDto sessionDeleteDto) {
+
+        validate(sessionDeleteDto);
+
+        final Optional<SessionEntity> sessionEntityOptional = sessionRepository.findById(sessionDeleteDto.getId());
+
+        if (sessionEntityOptional.isEmpty()) {
+            throw new EntityNotFoundException(sessionDeleteDto.getId().toString());
+        }
+
+        sessionRepository.delete(sessionEntityOptional.get());
     }
 
     private void validate(Object dto) {
