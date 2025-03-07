@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -59,6 +60,7 @@ public class SessionTempController {
     @ApiResponse(responseCode = "200", description = "Session retrieved successfully")
     @ApiResponse(responseCode = "404", description = "Session not found")
     @GetMapping
+    @PreAuthorize("hasAccess('ROLE_USER,ROLE_ADMIN')")
     public ResponseEntity<?> getSession(@RequestParam String user1 , @RequestParam String user2) {
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -75,6 +77,7 @@ public class SessionTempController {
     @ApiResponse(responseCode = "200", description = "Session deleted successfully")
     @ApiResponse(responseCode = "404", description = "Session not found")
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAccess('ROLE_ADMIN')")
     public ResponseEntity<?> deleteSession(@RequestBody SessionDeleteDto sessionDeleteDto) {
         sessionService.deleteSession(sessionDeleteDto);
         return ResponseEntity
@@ -86,5 +89,12 @@ public class SessionTempController {
                         new Object(),
                         "/api/v1/sessions/delete"
                 ));
+    }
+
+
+    @GetMapping("/{sessionId}")
+    @PreAuthorize("hasAccess(#sessionId)")
+    public ResponseEntity<?> getSession(@PathVariable String sessionId) {
+        return ResponseEntity.ok().build();
     }
 }

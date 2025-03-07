@@ -1,9 +1,6 @@
 package com.example.springbootchatmessenger.user;
 
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
 import java.util.ArrayList;
@@ -48,6 +45,7 @@ public interface UserMapper {
         return userDtoList;
     }
 
+    @Mapping(target = "authorities", expression = "java(com.example.springbootchatmessenger.roles.EncryptionUtil.decrypt(userEntity.getAuthorities()))")
     UserDto toUserDto(final UserEntity userEntity);
 
     // partial updates

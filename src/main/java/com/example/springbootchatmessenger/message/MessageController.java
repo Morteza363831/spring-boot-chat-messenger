@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -43,6 +44,7 @@ public class MessageController {
     @Operation(summary = "Get all messages", description = "Retrieves all messages for a given session")
     @ApiResponse(responseCode = "200", description = "Messages retrieved successfully")
     @ApiResponse(responseCode = "404", description = "Session not found")
+    @PreAuthorize("hasAccess(#sessionId)")
     @GetMapping("/{sessionId}")
     public ResponseEntity<?> getAllMessages(@PathVariable UUID sessionId) {
         return ResponseEntity
@@ -58,6 +60,7 @@ public class MessageController {
 
     @Operation(summary = "Store a message", description = "Stores a message in the database for a session")
     @ApiResponse(responseCode = "201", description = "Message stored successfully")
+    @PreAuthorize("hasAccess(#sessionId)")
     @PostMapping("/{sessionId}")
     public void saveMessage(@PathVariable final UUID sessionId,
                             @RequestBody final MessageContent messageContent) {

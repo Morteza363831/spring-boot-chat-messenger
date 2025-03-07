@@ -2,6 +2,7 @@ package com.example.springbootchatmessenger.jwt;
 
 import com.example.springbootchatmessenger.user.UserEntity;
 import com.example.springbootchatmessenger.user.UserRepository;
+import com.example.springbootchatmessenger.roles.EncryptionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.User;
@@ -41,7 +42,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
             final List<String> authorities = new ArrayList<>();
             Optional.ofNullable(userEntity.getAuthorities()).ifPresent(authority -> {
-                authorities.addAll( Arrays.stream(authority.split(",")).toList());
+                authorities.addAll( Arrays.stream(EncryptionUtil.decrypt(authority).split(",")).toList());
             });
             final String[] result = new String[authorities.size()];
             authorities.forEach(authority -> {
