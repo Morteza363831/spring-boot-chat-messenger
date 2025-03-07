@@ -8,6 +8,7 @@ import com.example.springbootchatmessenger.message.MessageService;
 import com.example.springbootchatmessenger.user.UserDto;
 import com.example.springbootchatmessenger.user.UserMapper;
 import com.example.springbootchatmessenger.user.UserService;
+import com.example.springbootchatmessenger.user.UserUpdateDto;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Validator;
@@ -52,20 +53,32 @@ public class SessionServiceImpl implements SessionService {
         final UserDto firstUser = userService.getUserByUsername(sessionCreateDto.getUser1());
         final UserDto secondUser = userService.getUserByUsername(sessionCreateDto.getUser2());
 
-        // Check is session existence
+        // Check if session already exists
         sessionRepository.findExistingSession(firstUser.getId(), secondUser.getId())
                 .ifPresent(existing -> {
                     throw new EntityAlreadyExistException(existing.getId().toString());
                 });
 
         // Create and save session
-        SessionEntity sessionEntity = SessionEntity.createSession(UserMapper.INSTANCE.toEntity(firstUser), UserMapper.INSTANCE.toEntity(secondUser));
+        SessionEntity sessionEntity = SessionEntity.createSession(
+                UserMapper.INSTANCE.toEntity(firstUser),
+                UserMapper.INSTANCE.toEntity(secondUser)
+        );
 
         sessionEntity = sessionRepository.save(sessionEntity);
 
-        sessionEntity.setMessageEntity(MessageMapper.INSTANCE.toEntity(messageService.saveMessageEntity(sessionEntity.getId())));
+        // Create an empty message entity
+        sessionEntity.setMessageEntity(MessageMapper.INSTANCE.toEntity(
+                messageService.saveMessageEntity(sessionEntity.getId()))
+        );
 
-        return SessionMapper.INSTANCE.sessionEntityToSessionDto(sessionRepository.save(sessionEntity));
+        sessionEntity = sessionRepository.save(sessionEntity);
+
+        // 🔹 Securely update user authorities inside the same transaction
+        updateUserAuthorities(firstUser, sessionEntity.getId());
+        updateUserAuthorities(secondUser, sessionEntity.getId());
+
+        return SessionMapper.INSTANCE.sessionEntityToSessionDto(sessionEntity);
     }
 
 
@@ -104,6 +117,17 @@ public class SessionServiceImpl implements SessionService {
 
         sessionRepository.delete(sessionEntityOptional.get());
     }
+
+    private void updateUserAuthorities(UserDto user, UUID sessionId) {
+        UserUpdateDto userUpdateDto = new UserUpdateDto();
+
+        // Encrypt and append new session ID
+        String updatedAuthorities = user.getAuthorities() + "," + sessionId;
+
+        userUpdateDto.setAuthorities(updatedAuthorities);
+        userService.updateUser(user.getUsername(), userUpdateDto);
+    }
+
 
     private void validate(Object dto) {
         List<String> violations = new ArrayList<>();
