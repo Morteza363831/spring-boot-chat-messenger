@@ -1,8 +1,10 @@
 package com.example.springbootchatmessenger.message;
 
 
+import com.example.springbootchatmessenger.exceptions.CustomEntityNotFoundException;
 import com.example.springbootchatmessenger.exceptions.CustomValidationException;
-import com.example.springbootchatmessenger.utility.JsonMapper;
+import com.example.springbootchatmessenger.exceptions.EntityAlreadyExistException;
+import com.example.springbootchatmessenger.utility.AESGCMUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
@@ -10,10 +12,9 @@ import jakarta.validation.Validator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.util.*;
 
 /*
  * this class will handle requests and responses for messages
@@ -79,16 +80,14 @@ public class MessageServiceImpl implements MessageService {
         // then read message contents
         MessageContentList messageContentList = new MessageContentList();
         try {
-            messageContentList = mapper.readValue(messageDto.getContent(), MessageContentList.class);
+            messageContentList = mapper.readValue(decryption(messageDto.getContent(), decode(messageDto.getEncryptedAESKey())), MessageContentList.class);
         } catch (JsonProcessingException e) {
             log.error("Couldn't parse message", e);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
         return messageContentList.getMessageContentList();
     }
-
-
-
-
 
     private MessageDto createMessageEntity(final UUID sessionId) {
 
@@ -97,31 +96,46 @@ public class MessageServiceImpl implements MessageService {
         // if message entity is null create one
         if (messageEntityOptional.isPresent()) {
             // persist message entity
-            return MessageMapper.INSTANCE.toDto(messageRepository.save(messageEntityOptional.get()));
+            throw new EntityAlreadyExistException(messageEntityOptional.get().getId().toString());
         }
         // persist message entity
         MessageEntity messageEntity = new MessageEntity();
         messageEntity.setSessionId(sessionId);
         try {
-            messageEntity.setContent(mapper.writeValueAsString(new MessageContentList()));
+            final SecretKey secretKey = AESGCMUtil.generateAESKey();
+            messageEntity.setContent(encryption(mapper.writeValueAsString(new MessageContentList()), secretKey));
+            messageEntity.setEncryptedAESKey(encode(secretKey));
         } catch (JsonProcessingException e) {
             log.error("Couldn't parse messages");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
         return MessageMapper.INSTANCE.toDto(messageRepository.save(messageEntity));
     }
 
     private void addMessageContentAndUpdateMessageEntity(UUID sessionId, MessageContent messageContent) {
+        Optional<MessageEntity> messageEntityOptional = messageRepository.findBySessionId(sessionId);
+        if (messageEntityOptional.isEmpty()) {
+            throw new CustomEntityNotFoundException("Message entity not found for session: " + sessionId);
+        }
+
+        MessageEntity messageEntity = messageEntityOptional.get();
         try {
-            Optional<MessageEntity> messageEntityOptional = messageRepository.findBySessionId(sessionId);
-            // get message content (sender , receiver and message) then map it from json to an object
-            MessageContentList messageContentList = checkNull(JsonMapper.MAPPER.readValue(messageEntityOptional.get().getContent(), MessageContentList.class));
-            // add message
+            // Decrypt the existing message content
+            final SecretKey secretKey = decode(messageEntity.getEncryptedAESKey());
+            final String decryptedContent = decryption(messageEntity.getContent(), secretKey);
+
+            // Parse JSON
+            MessageContentList messageContentList = checkNull(mapper.readValue(decryptedContent, MessageContentList.class));
             messageContentList.getMessageContentList().add(messageContent);
-            messageEntityOptional.get().setContent(JsonMapper.MAPPER.writeValueAsString(messageContentList));
-            // persist data
-            messageRepository.save(messageEntityOptional.get());
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+
+            // Encrypt updated content
+            String encryptedContent = encryption(mapper.writeValueAsString(messageContentList), secretKey);
+            messageEntity.setContent(encryptedContent);
+
+            messageRepository.save(messageEntity);
+        } catch (Exception e) {
+            throw new RuntimeException("Error updating message entity", e);
         }
     }
 
@@ -141,4 +155,27 @@ public class MessageServiceImpl implements MessageService {
             throw new CustomValidationException(violations);
         }
     }
+
+
+    private String encryption(String content, SecretKey secretKey) {
+        try {
+            return AESGCMUtil.encrypt(content, secretKey, AESGCMUtil.generateIV());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String decryption(String content, SecretKey key) throws Exception {
+        return AESGCMUtil.decrypt(content, key);
+    }
+
+    private String encode(SecretKey key) {
+        return Base64.getEncoder().encodeToString(key.getEncoded());
+    }
+
+    private SecretKey decode(String encodedKey) {
+        byte[] decodedBytes = Base64.getDecoder().decode(encodedKey);
+        return new SecretKeySpec(decodedBytes, "AES");
+    }
+
 }
