@@ -31,20 +31,12 @@ public class MessageEntity {
     private UUID id;
 
     @Lob
-    @Column(columnDefinition = "BLOB")
-    @JdbcTypeCode(SqlTypes.BLOB)
-    private byte[] content;
+    private String content;
 
     @NotNull
     @Column(name = "session_id", unique = true, nullable = false)
     private UUID sessionId; // Store only session ID
 
-
-    public String getContent() {
-        return content != null ? new String(content) : "";
-    }
-
-    public void setContent(String content) {
-        this.content = content.getBytes();
-    }
+    @Column(nullable = false, updatable = false, unique = true)
+    private String encryptedAESKey;
 }
