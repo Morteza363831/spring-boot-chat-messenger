@@ -2,6 +2,7 @@ package com.example.springbootchatmessenger.jwt;
 
 import com.example.springbootchatmessenger.user.UserEntity;
 import com.example.springbootchatmessenger.user.UserRepository;
+import com.example.springbootchatmessenger.roles.EncryptionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -38,7 +39,7 @@ public class CustomAuthenticationManager implements AuthenticationManager {
 
             if (passwordEncoder.encode(authentication.getCredentials().toString()).equals(userEntity.getPassword())) {
                 final List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
-                final List<String> userRoles = Arrays.stream(userEntityOptional.get().getAuthorities().split(",")).toList();
+                final List<String> userRoles = Arrays.stream(EncryptionUtil.decrypt(userEntity.getAuthorities()).split(",")).toList();
                 userRoles.forEach(userRole -> grantedAuthorities.add(new SimpleGrantedAuthority(userRole)));
 
                 return new UsernamePasswordAuthenticationToken(userEntity.getUsername(), authentication.getCredentials(), grantedAuthorities);

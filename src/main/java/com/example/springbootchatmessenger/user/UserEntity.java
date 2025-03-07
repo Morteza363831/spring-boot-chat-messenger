@@ -1,5 +1,6 @@
 package com.example.springbootchatmessenger.user;
 
+import com.example.springbootchatmessenger.roles.EncryptionUtil;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
@@ -42,8 +43,16 @@ public class UserEntity {
 
     @PrePersist
     public void prePersist() {
-        if (authorities == null || authorities.isEmpty()) {
+        if (authorities == null || authorities.isBlank() || !EncryptionUtil.isEncrypted(authorities)) {
              authorities = "ROLE_USER";
+             authorities= EncryptionUtil.encrypt(authorities);
+        }
+    }
+
+    @PreUpdate
+    private void preUpdate() {
+        if (!authorities.isBlank() && !EncryptionUtil.isEncrypted(authorities)) {
+            authorities = EncryptionUtil.encrypt(authorities);
         }
     }
 
@@ -53,6 +62,8 @@ public class UserEntity {
             throw new DataIntegrityViolationException("Email is required");
         }
     }
+
+
 
     @Override
     public final boolean equals(Object o) {
