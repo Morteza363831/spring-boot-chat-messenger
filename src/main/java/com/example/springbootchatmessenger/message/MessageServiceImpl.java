@@ -70,7 +70,7 @@ public class MessageServiceImpl implements MessageService {
 
         MessageDto messageDto = null;
         if (messageEntityOptional.isPresent()) {
-            messageDto = mapper.convertValue(messageEntityOptional.get(), MessageDto.class);
+            messageDto = MessageMapper.INSTANCE.toDto(messageEntityOptional.get());
         }
         // if message entity is null create one
         if (messageEntityOptional.isEmpty()) {
