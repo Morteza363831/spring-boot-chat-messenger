@@ -16,4 +16,5 @@ public class MessageDto implements Serializable {
 
     UUID id;
     String content;
+    UUID sessionId;
 }
