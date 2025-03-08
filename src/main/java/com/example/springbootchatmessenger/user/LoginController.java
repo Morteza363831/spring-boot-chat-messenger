@@ -60,10 +60,10 @@ public class LoginController {
     @ApiResponse(responseCode = "200", description = "Token generated successfully")
     @ApiResponse(responseCode = "401", description = "Invalid credentials")
     @PostMapping("/token")
-    public ResponseEntity<?> token(@RequestParam final String username, @RequestParam final String password) {
+    public ResponseEntity<?> token(@RequestBody AuthenticationDto authenticationDto) {
         try {
-            authenticate(username, password);
-            final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            authenticate(authenticationDto.getUsername(), authenticationDto.getPassword());
+            final UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationDto.getUsername());
             final String token = jwtTokenUtil.generateToken(userDetails);
             return ResponseEntity
                     .status(HttpStatus.OK)
@@ -75,10 +75,10 @@ public class LoginController {
                             "/api/v1/auth/token"
                     ));
         } catch (CustomEntityNotFoundException e) {
-            log.error("User not found: {}", username);
-            throw new CustomEntityNotFoundException(username);
+            log.error("User not found: {}", authenticationDto.getUsername());
+            throw new CustomEntityNotFoundException(authenticationDto.getUsername());
         } catch (Exception e) {
-            log.error("Authentication failed for user: {}", username);
+            log.error("Authentication failed for user: {}", authenticationDto.getUsername());
             throw new CustomValidationException(List.of(e.getMessage()));
         }
     }

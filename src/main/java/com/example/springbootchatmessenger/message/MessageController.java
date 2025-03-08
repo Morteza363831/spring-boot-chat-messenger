@@ -1,6 +1,9 @@
 package com.example.springbootchatmessenger.message;
 
 import com.example.springbootchatmessenger.structure.ResponseResult;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -9,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -24,21 +28,39 @@ public class MessageController {
 
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final MessageService messageService;
+    private final ObjectMapper mapper;
 
     public MessageController(final SimpMessagingTemplate simpMessagingTemplate,
-                             final MessageService messageService) {
+                             final MessageService messageService,
+                             final ObjectMapper mapper) {
         this.simpMessagingTemplate = simpMessagingTemplate;
         this.messageService = messageService;
+        this.mapper = mapper;
     }
 
     @Operation(summary = "Send a message", description = "Sends a message between users within a session")
     @ApiResponse(responseCode = "200", description = "Message sent successfully")
     @MessageMapping("/send")
-    public void sendMessage(final UUID sessionId,
-                            final MessageContent chatMessage) {
-        messageService.saveMessage(sessionId, chatMessage);
-        simpMessagingTemplate.convertAndSend("/topic/" + sessionId, chatMessage);
-        log.info("Message sent in session: {} | Sender: {} | Receiver: {}", sessionId, chatMessage.getSender(), chatMessage.getReceiver());
+    public MessageContent sendMessage(@Payload String body) {
+        JsonNode messageNode = null;
+        try {
+            messageNode = mapper.readTree(body);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        UUID sessionId = UUID.fromString(messageNode.get("sessionId").asText());
+        String sender = messageNode.get("sender").asText();
+        String receiver = messageNode.get("receiver").asText();
+        String content = messageNode.get("content").asText();
+        MessageContent messageContent = new MessageContent();
+        messageContent.setSender(sender);
+        messageContent.setReceiver(receiver);
+        messageContent.setContent(content);
+
+        messageService.saveMessage(sessionId, messageContent);
+        simpMessagingTemplate.convertAndSend("/topic/" + sessionId.toString(), messageContent);
+        log.info("Message sent in session: {} | Sender: {} | Receiver: {}", sessionId, messageContent.getSender(), messageContent.getReceiver());
+        return messageContent;
     }
 
     @Operation(summary = "Get all messages", description = "Retrieves all messages for a given session")
