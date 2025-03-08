@@ -94,8 +94,12 @@ public class SecurityConfig {
                 .authenticationManager(authenticationManager())
                 .authorizeHttpRequests(request -> {
                     request
-                            .requestMatchers("/api/v1/users/register", "/api/v1/user", "/login", "/main/**", "/chat/**",  "/api/v1/auth/token", "/signup/create", "/css/**", "/js/**", "/messenger-swagger/**", "/api-docs", "/swagger-ui/**")
-                            .permitAll()
+                            .requestMatchers(
+                                    "/api/v1/users/register", "/api/v1/user", "/login",
+                                    "/main/**", "/chat/**", "/ws/**", "/api/v1/auth/token",
+                                    "/signup/create", "/css/**", "/js/**", "/messenger-swagger/**",
+                                    "/api-docs", "/swagger-ui/**"
+                            ).permitAll()
                             .anyRequest()
                             .authenticated();
                     log.info("Authenticated");
