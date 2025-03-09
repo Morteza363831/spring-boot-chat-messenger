@@ -10,18 +10,8 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 import java.util.UUID;
 
-/*
- * this class store sessions in database
- */
-
 @Repository
 public interface SessionRepository extends JpaRepository<SessionEntity, UUID> {
-
-
-    /*
-     * this query will get session for two users
-     * we can use this session to open the chat page (using chat id)
-     */
 
     @Transactional(rollbackOn = Exception.class)
     @Query("""

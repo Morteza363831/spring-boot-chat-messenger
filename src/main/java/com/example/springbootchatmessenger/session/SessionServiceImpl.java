@@ -17,20 +17,22 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-/*
- * this class will handle sessions
- * --> save will save session in the database for two users
- * --> findByUsernames will find a session fore these two users (sender and receiver or reverse)
+/**
+ * This class will process for session requests like create, get, delete and etc
  */
 
 @Slf4j
 @Service
 public class SessionServiceImpl implements SessionService {
 
+    // inject default beans
+    private final Validator validator;
+
+
+    // inject other
     private final SessionRepository sessionRepository;
     private final MessageService messageService;
     private final UserService userService;
-    private final Validator validator;
 
     public SessionServiceImpl(final SessionRepository sessionRepository,
                               final UserService userService,
@@ -84,7 +86,7 @@ public class SessionServiceImpl implements SessionService {
 
     @Transactional(rollbackOn = Exception.class)
     @Override
-    public SessionDto findByUserIds(final String user1 , String user2) {
+    public SessionDto findByUserIds(final String user1 , final String user2) {
 
 
         // find users by their usernames
@@ -96,41 +98,42 @@ public class SessionServiceImpl implements SessionService {
                 .orElseGet(() -> save(new SessionCreateDto(user1, user2)));
     }
 
+    // For now this functionality is not accessible
     @Override
     public SessionDto findBySessionId(final UUID id) {
-        return sessionRepository
+        /*return sessionRepository
                 .findById(id)
                 .map(SessionMapper.INSTANCE::sessionEntityToSessionDto)
-                .orElseThrow(() -> new EntityNotFoundException(id.toString()));
+                .orElseThrow(() -> new EntityNotFoundException(id.toString()));*/
+        return null;
     }
 
+    @Transactional(rollbackOn = Exception.class)
     @Override
-    public void deleteSession(SessionDeleteDto sessionDeleteDto) {
+    public void deleteSession(final SessionDeleteDto sessionDeleteDto) {
 
         validate(sessionDeleteDto);
+        sessionRepository
+                .findById(sessionDeleteDto.getId())
+                .ifPresentOrElse(sessionRepository::delete, () -> {
+                    throw new EntityNotFoundException(sessionDeleteDto.getId().toString());
+                });
 
-        final Optional<SessionEntity> sessionEntityOptional = sessionRepository.findById(sessionDeleteDto.getId());
-
-        if (sessionEntityOptional.isEmpty()) {
-            throw new EntityNotFoundException(sessionDeleteDto.getId().toString());
-        }
-
-        sessionRepository.delete(sessionEntityOptional.get());
     }
 
-    private void updateUserAuthorities(UserDto user, UUID sessionId) {
-        UserUpdateDto userUpdateDto = new UserUpdateDto();
+    private void updateUserAuthorities(final UserDto user, final UUID sessionId) {
+        final UserUpdateDto userUpdateDto = UserMapper.INSTANCE.userDtoToUpdateDto(user);
 
         // Encrypt and append new session ID
-        String updatedAuthorities = user.getAuthorities() + "," + sessionId;
+        final String updatedAuthorities = user.getAuthorities() + "," + sessionId;
 
         userUpdateDto.setAuthorities(updatedAuthorities);
         userService.updateUser(user.getUsername(), userUpdateDto);
     }
 
 
-    private void validate(Object dto) {
-        List<String> violations = new ArrayList<>();
+    private void validate(final Object dto) {
+        final List<String> violations = new ArrayList<>();
         validator.validate(dto).forEach(field -> violations.add(field.getMessage()));
         if (!violations.isEmpty()) {
             throw new CustomValidationException(violations);

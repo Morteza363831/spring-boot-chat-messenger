@@ -29,6 +29,7 @@ public class SessionTempController {
     @Operation(summary = "Create a chat session", description = "Creates a new session between two users")
     @ApiResponse(responseCode = "201", description = "Session created successfully")
     @ApiResponse(responseCode = "409", description = "Session already exists")
+    @PreAuthorize("isMatch(sessionCreateDto.getUser1()) || hasAccess('ROLE_ADMIN')")
     @PostMapping("/create")
     public ResponseEntity<?> createSession(@RequestBody SessionCreateDto sessionCreateDto) {
         final Optional<SessionDto> sessionEntityDto = Optional.ofNullable(sessionService.save(sessionCreateDto));
@@ -59,8 +60,8 @@ public class SessionTempController {
     @Operation(summary = "Get session by users", description = "Retrieves the chat session for two users")
     @ApiResponse(responseCode = "200", description = "Session retrieved successfully")
     @ApiResponse(responseCode = "404", description = "Session not found")
+    @PreAuthorize("isMatch(#user1) || hasAccess('ROLE_ADMIN')")
     @GetMapping
-    @PreAuthorize("hasAccess('ROLE_USER,ROLE_ADMIN')")
     public ResponseEntity<?> getSession(@RequestParam String user1 , @RequestParam String user2) {
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -76,8 +77,8 @@ public class SessionTempController {
     @Operation(summary = "Delete a chat session", description = "Deletes an existing chat session")
     @ApiResponse(responseCode = "200", description = "Session deleted successfully")
     @ApiResponse(responseCode = "404", description = "Session not found")
+    @PreAuthorize("hasAccess(sessionDeleteDto.getId())|| hasAccess('ROLE_ADMIN')")
     @DeleteMapping("/delete")
-    @PreAuthorize("hasAccess('ROLE_ADMIN')")
     public ResponseEntity<?> deleteSession(@RequestBody SessionDeleteDto sessionDeleteDto) {
         sessionService.deleteSession(sessionDeleteDto);
         return ResponseEntity
