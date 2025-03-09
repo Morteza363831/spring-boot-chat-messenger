@@ -1,4 +1,4 @@
-package com.example.springbootchatmessenger.roles;
+package com.example.springbootchatmessenger.utility;
 
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
@@ -36,7 +36,7 @@ public class EncryptionUtil {
     }
 
     public static boolean isEncrypted(String data) {
-        return data.matches("[A-Za-z0-9+/=]+"); // Checks if Base64 encoded
+        return !data.matches("[A-Za-z0-9+/=]+"); // Checks if Base64 encoded
     }
 
 }
