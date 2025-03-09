@@ -30,13 +30,14 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.io.IOException;
 
-/*
- * this class will handle security of the project
- * --> authenticationSuccessHandler will handle redirection after successful login
- * --> securityFilterChain will handle requests for endpoints (give access to them or authenticate them before giving access)
- * --> webSecurityCustomizer will ignore h2-console (so we can connect to h2 database and check tables)
+/**
+ * SecurityConfig class
+ * CSRF disabled
+ * CORS enabled
+ * some endpoints permitted
+ * some must authenticate
+ * ExceptionHandler added
  */
-
 @Configuration
 @EnableWebSecurity
 @Slf4j
