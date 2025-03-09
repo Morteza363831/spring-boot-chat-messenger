@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,6 +18,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+/**
+ * Login controller class will handle requests for token and login
+ * /token endpoint is public and anyone can access to it
+ */
 
 @Slf4j
 @Tag(name = "Authentication", description = "Handles user authentication and JWT token generation")
@@ -30,31 +34,16 @@ public class LoginController {
     private final CustomAuthenticationManager authenticationManager;
     private final CustomUserDetailsService userDetailsService;
     private final JwtTokenUtil jwtTokenUtil;
-    private final ResourceLoader resourceLoader;
 
     public LoginController(CustomAuthenticationManager authenticationManager,
                            CustomUserDetailsService userDetailsService,
-                           JwtTokenUtil jwtTokenUtil,
-                           ResourceLoader resourceLoader) {
+                           JwtTokenUtil jwtTokenUtil) {
         this.authenticationManager = authenticationManager;
         this.userDetailsService = userDetailsService;
         this.jwtTokenUtil = jwtTokenUtil;
-        this.resourceLoader = resourceLoader;
     }
-/*
-    @Operation(summary = "Login page", description = "Returns the login page HTML")
-    @ApiResponse(responseCode = "200", description = "Login page returned successfully")
-    @ApiResponse(responseCode = "404", description = "Login page not found")
-    @GetMapping
-    public ResponseEntity<Resource> loginPage() {
-        Resource resource = resourceLoader.getResource("classpath:templates/login.html");
-        if (resource.exists()) {
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_TYPE, "text/html")
-                    .body(resource);
-        }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-    }*/
+
+    // public methods
 
     @Operation(summary = "Generate JWT token", description = "Authenticates user and returns JWT token")
     @ApiResponse(responseCode = "200", description = "Token generated successfully")
