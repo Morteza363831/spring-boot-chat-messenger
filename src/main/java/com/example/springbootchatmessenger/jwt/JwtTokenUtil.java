@@ -6,20 +6,23 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
 @Component
-public class JwtTokenUtil {
+public class JwtTokenUtil implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 55L;
 
 
     public static final long JWT_TOKEN_VALIDITY = 5 * 3600;
 
-    private String secret = "5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437";
+    private final String secret = "5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437";
 
 
     public String getUsernameFromToken(String token) {
@@ -38,7 +41,7 @@ public class JwtTokenUtil {
     }
 
     public String generateToken(UserDetails userDetails) {
-        Map<String, Object> claims = new HashMap<>();
+        final Map<String, Object> claims = new HashMap<>();
         return doGenerateToken(claims, userDetails.getUsername());
     }
 

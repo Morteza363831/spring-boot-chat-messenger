@@ -12,16 +12,13 @@ public interface UserMapper {
     UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
 
     // dto to entity
-
     UserEntity toEntity(final UserDto userDto);
-
-    UserEntity toEntity(final UserUpdateDto userUpdateDto);
-
     UserEntity toEntity(final UserCreateDto userCreateDto);
-
     default List<UserEntity> userDtoListToUserEntityList(final List<UserDto> userDtoList) {
 
-        //TODO
+        if (userDtoList == null) {
+            return new ArrayList<>();
+        }
 
         final List<UserEntity> userEntityList = new ArrayList<>();
 
@@ -35,7 +32,9 @@ public interface UserMapper {
     // entity to dto
     default List<UserDto> userEntityListToUserDtoList(final List<UserEntity> userEntityList) {
 
-        //TODO
+        if (userEntityList == null) {
+            return new ArrayList<>();
+        }
 
         final List<UserDto> userDtoList = new ArrayList<>();
 
@@ -44,12 +43,14 @@ public interface UserMapper {
         });
         return userDtoList;
     }
-
-    @Mapping(target = "authorities", expression = "java(com.example.springbootchatmessenger.roles.EncryptionUtil.decrypt(userEntity.getAuthorities()))")
+    @Mapping(target = "authorities", expression = "java(com.example.springbootchatmessenger.utility.EncryptionUtil.decrypt(userEntity.getAuthorities()))")
     UserDto toUserDto(final UserEntity userEntity);
 
     // partial updates
-
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     UserEntity partialUpdate(final UserUpdateDto userUpdateDto, @MappingTarget final UserEntity userEntity);
+
+    // dto to dto
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    UserUpdateDto userDtoToUpdateDto(final UserDto userDto);
 }

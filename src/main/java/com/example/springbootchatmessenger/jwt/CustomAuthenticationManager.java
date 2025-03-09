@@ -2,7 +2,7 @@ package com.example.springbootchatmessenger.jwt;
 
 import com.example.springbootchatmessenger.user.UserEntity;
 import com.example.springbootchatmessenger.user.UserRepository;
-import com.example.springbootchatmessenger.roles.EncryptionUtil;
+import com.example.springbootchatmessenger.utility.EncryptionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;

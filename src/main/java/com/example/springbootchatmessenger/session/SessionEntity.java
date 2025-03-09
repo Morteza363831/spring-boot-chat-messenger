@@ -1,23 +1,14 @@
 package com.example.springbootchatmessenger.session;
 
 import com.example.springbootchatmessenger.exceptions.SessionUserSizeException;
-import com.example.springbootchatmessenger.message.MessageContentList;
 import com.example.springbootchatmessenger.message.MessageEntity;
 import com.example.springbootchatmessenger.user.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.proxy.HibernateProxy;
 
-import java.util.LinkedHashSet;
-import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 
-/*
- * session entity will store sessions for each user in the database
- * so for each user we have a chat page with chatId equal to id (session id)
- */
 @Entity
 @Table(name = "sessions", uniqueConstraints = @UniqueConstraint(columnNames = {"user1_id", "user2_id"}))
 @Getter
@@ -47,9 +38,7 @@ public class SessionEntity {
     @PrePersist
     @PreUpdate
     public void validateUsers() {
-        if (user1.equals(user2)) {
-            throw new SessionUserSizeException("A session must have two different users.");
-        }
+        //TODO
     }
 
     public static SessionEntity createSession(UserEntity user1, UserEntity user2) {

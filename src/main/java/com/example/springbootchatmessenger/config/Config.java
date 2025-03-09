@@ -11,25 +11,14 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.RestTemplate;
 
 import java.net.http.HttpClient;
-import java.util.ArrayList;
 
-
-/*
- * the config class will make bean objects for important classes like :
- * RestTemplate to send requests between services
- * ModelMapper to map entities and dtos
+/**
+ * This class will config some default beans like ObjectMapper , HttpClient , OpenApi and etx
  */
-
 @Configuration
 public class Config {
-
-    @Bean
-    public RestTemplate restTemplate() {
-        return new RestTemplate();
-    }
 
     @Bean
     public HttpClient httpClient() {

@@ -5,10 +5,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * AuthenticationDto class contains username and password to getting token
+ */
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-
 public class AuthenticationDto {
 
     @NotBlank(message = "invalid username")

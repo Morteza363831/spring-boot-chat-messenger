@@ -4,8 +4,6 @@ package com.example.springbootchatmessenger.user;
 import com.example.springbootchatmessenger.exceptions.CustomValidationException;
 import com.example.springbootchatmessenger.exceptions.EntityAlreadyExistException;
 import com.example.springbootchatmessenger.exceptions.CustomEntityNotFoundException;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Validator;
 import lombok.extern.slf4j.Slf4j;
@@ -14,22 +12,21 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-/*
- * this class will handle users
- * --> save will save a user in database
- * --> getUserById will get a user using his id not his username !
- * --> deleteUserById will delete a user with his id
- * --> getAllUsers will get all users from database
+/**
+ * This class will process on user requests like create, get, update, delete and etc
+ * PasswordEncoder will encode password using BCrypt algorithm
  */
 
 @Service
 @Slf4j
 public class UserServiceImpl implements UserService {
 
+    // inject default beans
     private final Validator validator;
-
-    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    // inject created beans
+    private final UserRepository userRepository;
 
     public UserServiceImpl(final UserRepository userRepository,
                            final PasswordEncoder passwordEncoder,
@@ -51,53 +48,47 @@ public class UserServiceImpl implements UserService {
             throw new EntityAlreadyExistException(userCreateDto.getUsername());
         }
 
-        UserEntity userEntity = UserMapper.INSTANCE.toEntity(userCreateDto);
-        userEntity.setPassword(passwordEncoder.encode(userCreateDto.getPassword()));
-        userEntity = userRepository.save(userEntity);
+        userCreateDto.setPassword(passwordEncoder.encode(userCreateDto.getPassword()));
+        final UserEntity userEntity = userRepository.save(UserMapper.INSTANCE.toEntity(userCreateDto));
         return UserMapper.INSTANCE.toUserDto(userEntity);
     }
 
+    // For now this method is not available
     @Override
     public UserDto getUserById(final UUID uuid) {
-        return userRepository.findById(uuid)
+        /*return userRepository.findById(uuid)
                 .map(UserMapper.INSTANCE::toUserDto)
-                .orElseThrow(() -> new CustomEntityNotFoundException(uuid.toString()));
+                .orElseThrow(() -> new CustomEntityNotFoundException(uuid.toString()));*/
+        return null;
     }
 
     @Transactional(rollbackOn = Exception.class)
     @Override
     public void updateUser(final String username, final UserUpdateDto userUpdateDto) {
-
-        Optional<UserEntity> user = userRepository.findByUsername(username);
-
-        if (user.isEmpty()) {
-            throw new CustomEntityNotFoundException(username);
-        }
-        userRepository.save(UserMapper.INSTANCE.partialUpdate(userUpdateDto, user.get()));
+        validate(userUpdateDto);
+        userRepository
+                .findByUsername(username)
+                .ifPresentOrElse(foundedUser -> {
+                    userRepository.save(UserMapper.INSTANCE.partialUpdate(userUpdateDto, foundedUser));
+                }, () -> {
+                    throw new CustomEntityNotFoundException(username);
+                });
     }
 
 
     @Transactional(rollbackOn = Exception.class)
     @Override
     public void deleteUserById(UserDeleteDto userDeleteDto) {
-
-        final Optional<UserEntity> user = userRepository.findByUsername(userDeleteDto.getUsername());
-
-        if (user.isEmpty()) {
-            throw new CustomEntityNotFoundException(userDeleteDto.getUsername());
-        }
-        userRepository.deleteById(user.get().getId());
+        validate(userDeleteDto);
+        userRepository
+                .findByUsername(userDeleteDto.getUsername())
+                .ifPresentOrElse(userRepository::delete, () -> {throw new CustomEntityNotFoundException(userDeleteDto.getUsername());});
     }
 
     @Override
     public List<UserDto> getAllUsers() {
-
         final List<UserEntity> users = userRepository.findAll();
-        // Use Optional to handle the case where the list might be empty
-        return Optional.of(users)
-                .filter(userList -> !userList.isEmpty()) // Check if the list is not empty
-                .map(UserMapper.INSTANCE::userEntityListToUserDtoList) // Map to DTOs and collect into a list
-                .orElseGet(ArrayList::new); // Return an empty list if no users found
+        return UserMapper.INSTANCE.userEntityListToUserDtoList(users); // Return an empty list if no users found
     }
 
     @Override
@@ -109,7 +100,7 @@ public class UserServiceImpl implements UserService {
 
 
     private void validate(Object userCreateDto) {
-        List<String> violations = new ArrayList<>();
+        final List<String> violations = new ArrayList<>();
         validator.validate(userCreateDto).forEach(field -> violations.add(field.getMessage()));
         if (!violations.isEmpty()) {
             throw new CustomValidationException(violations);

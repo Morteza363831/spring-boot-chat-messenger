@@ -29,6 +29,6 @@ public class UserUpdateDto implements Serializable {
     private String firstName;
     @Size(message = "Last name size must be less than 50", max = 50)
     private String lastName;
-    @Pattern(message = "Incorrect authorities ", regexp = "^$|^[A-Za-z0-9_]+(?:,[A-Za-z0-9_]+)*$")
+    @Pattern(message = "Incorrect authorities ", regexp = "^$|^[A-Za-z0-9_]+(?:,[A-Za-z0-9_-]+)*$")
     private String authorities;
 }
