@@ -1,10 +1,9 @@
 package com.example.springbootchatmessenger.user;
 
-import com.example.springbootchatmessenger.roles.EncryptionUtil;
+import com.example.springbootchatmessenger.utility.EncryptionUtil;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
-import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -36,6 +35,7 @@ public class UserEntity {
     private String firstName;
     @Column(columnDefinition = "varchar(50)")
     private String lastName;
+    @Lob
     @Column(nullable = false, columnDefinition = "varchar(max)")
     private String authorities;
     @Column(nullable = false, columnDefinition = "varchar(255)")
@@ -43,23 +43,19 @@ public class UserEntity {
 
     @PrePersist
     public void prePersist() {
-        if (authorities == null || authorities.isBlank() || !EncryptionUtil.isEncrypted(authorities)) {
+        if (authorities == null || authorities.isBlank() || EncryptionUtil.isEncrypted(authorities)) {
              authorities = "ROLE_USER";
              authorities= EncryptionUtil.encrypt(authorities);
+        }
+        if (!enabled) {
+            enabled = true;
         }
     }
 
     @PreUpdate
     private void preUpdate() {
-        if (!authorities.isBlank() && !EncryptionUtil.isEncrypted(authorities)) {
+        if (!authorities.isBlank() && EncryptionUtil.isEncrypted(authorities)) {
             authorities = EncryptionUtil.encrypt(authorities);
-        }
-    }
-
-    @PostPersist
-    public void postPersist() {
-        if (email == null || email.isEmpty()) {
-            throw new DataIntegrityViolationException("Email is required");
         }
     }
 
