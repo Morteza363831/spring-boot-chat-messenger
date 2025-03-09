@@ -48,17 +48,17 @@ public class MessageController {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        UUID sessionId = UUID.fromString(messageNode.get("sessionId").asText());
-        String sender = messageNode.get("sender").asText();
-        String receiver = messageNode.get("receiver").asText();
-        String content = messageNode.get("content").asText();
+        final UUID sessionId = UUID.fromString(messageNode.get("sessionId").asText());
+        final String sender = messageNode.get("sender").asText();
+        final String receiver = messageNode.get("receiver").asText();
+        final String content = messageNode.get("content").asText();
         MessageContent messageContent = new MessageContent();
         messageContent.setSender(sender);
         messageContent.setReceiver(receiver);
         messageContent.setContent(content);
 
         messageService.saveMessage(sessionId, messageContent);
-        simpMessagingTemplate.convertAndSend("/topic/" + sessionId.toString(), messageContent);
+        simpMessagingTemplate.convertAndSend("/topic/" + sessionId, messageContent);
         log.info("Message sent in session: {} | Sender: {} | Receiver: {}", sessionId, messageContent.getSender(), messageContent.getReceiver());
         return messageContent;
     }
@@ -82,7 +82,7 @@ public class MessageController {
 
     @Operation(summary = "Store a message", description = "Stores a message in the database for a session")
     @ApiResponse(responseCode = "201", description = "Message stored successfully")
-    @PreAuthorize("hasAccess(#sessionId)")
+    @PreAuthorize("isMatch(#messageContent.getSender()) && hasAccess(#sessionId)")
     @PostMapping("/{sessionId}")
     public void saveMessage(@PathVariable final UUID sessionId,
                             @RequestBody final MessageContent messageContent) {

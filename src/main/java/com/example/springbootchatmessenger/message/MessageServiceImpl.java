@@ -1,45 +1,44 @@
 package com.example.springbootchatmessenger.message;
 
 
-import com.example.springbootchatmessenger.exceptions.CustomEntityNotFoundException;
-import com.example.springbootchatmessenger.exceptions.CustomValidationException;
-import com.example.springbootchatmessenger.exceptions.EntityAlreadyExistException;
+import com.example.springbootchatmessenger.exceptions.*;
 import com.example.springbootchatmessenger.utility.AESGCMUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Validator;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.util.*;
 
-/*
- * this class will handle requests and responses for messages
- * --> save messages in database
- * --> get all messages from database
- * --> get special message (unnecessary)
+/**
+ * This class will process Message requests like create Message entity , send message , get messages , delete messages and etc
  */
 
 @Slf4j
 @Service
 public class MessageServiceImpl implements MessageService {
 
-    private final MessageRepository messageRepository;
+    // inject default beans
     private final Validator validator;
     private final ObjectMapper mapper;
 
+    // inject others
+    private final MessageRepository messageRepository;
+
     public MessageServiceImpl(final MessageRepository messageRepository,
                               final Validator validator,
-                              ObjectMapper mapper) {
+                              final ObjectMapper mapper) {
         this.messageRepository = messageRepository;
         this.validator = validator;
         this.mapper = mapper;
     }
 
-
+    // public methods
 
     @Transactional(rollbackOn = Exception.class)
     @Override
@@ -53,10 +52,10 @@ public class MessageServiceImpl implements MessageService {
     @Transactional(rollbackOn = Exception.class)
     @Override
     public MessageDto saveMessageEntity(final UUID sessionId) {
-
         return createMessageEntity(sessionId);
     }
 
+    // For now this functionality is not accessible
     @Override
     public MessageContent findById(Long id) {
         return null;
@@ -82,12 +81,14 @@ public class MessageServiceImpl implements MessageService {
         try {
             messageContentList = mapper.readValue(decryption(messageDto.getContent(), decode(messageDto.getEncryptedAESKey())), MessageContentList.class);
         } catch (JsonProcessingException e) {
-            log.error("Couldn't parse message", e);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new JsonProcessingCustomException();
         }
         return messageContentList.getMessageContentList();
     }
+
+
+    // private methods
+
 
     private MessageDto createMessageEntity(final UUID sessionId) {
 
@@ -99,16 +100,16 @@ public class MessageServiceImpl implements MessageService {
             throw new EntityAlreadyExistException(messageEntityOptional.get().getId().toString());
         }
         // persist message entity
-        MessageEntity messageEntity = new MessageEntity();
+        final MessageEntity messageEntity = new MessageEntity();
         messageEntity.setSessionId(sessionId);
         try {
             final SecretKey secretKey = AESGCMUtil.generateAESKey();
             messageEntity.setContent(encryption(mapper.writeValueAsString(new MessageContentList()), secretKey));
             messageEntity.setEncryptedAESKey(encode(secretKey));
         } catch (JsonProcessingException e) {
-            log.error("Couldn't parse messages");
+            throw new JsonProcessingCustomException();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new KeyGenerationFailureException();
         }
         return MessageMapper.INSTANCE.toDto(messageRepository.save(messageEntity));
     }
@@ -119,27 +120,27 @@ public class MessageServiceImpl implements MessageService {
             throw new CustomEntityNotFoundException("Message entity not found for session: " + sessionId);
         }
 
-        MessageEntity messageEntity = messageEntityOptional.get();
+        final MessageEntity messageEntity = messageEntityOptional.get();
         try {
             // Decrypt the existing message content
             final SecretKey secretKey = decode(messageEntity.getEncryptedAESKey());
             final String decryptedContent = decryption(messageEntity.getContent(), secretKey);
 
             // Parse JSON
-            MessageContentList messageContentList = checkNull(mapper.readValue(decryptedContent, MessageContentList.class));
+            final MessageContentList messageContentList = checkNull(mapper.readValue(decryptedContent, MessageContentList.class));
             messageContentList.getMessageContentList().add(messageContent);
 
             // Encrypt updated content
-            String encryptedContent = encryption(mapper.writeValueAsString(messageContentList), secretKey);
+            final String encryptedContent = encryption(mapper.writeValueAsString(messageContentList), secretKey);
             messageEntity.setContent(encryptedContent);
 
             messageRepository.save(messageEntity);
-        } catch (Exception e) {
-            throw new RuntimeException("Error updating message entity", e);
+        } catch (JsonProcessingException e) {
+            throw new JsonProcessingCustomException();
         }
     }
 
-    private MessageContentList checkNull(MessageContentList messageContentList) {
+    private MessageContentList checkNull(final MessageContentList messageContentList) {
         // if the list is empty create one
         if (messageContentList.getMessageContentList() == null) {
             messageContentList.setMessageContentList(new ArrayList<>());
@@ -148,8 +149,8 @@ public class MessageServiceImpl implements MessageService {
         return messageContentList;
     }
 
-    private void validate(Object dto) {
-        List<String> violations = new ArrayList<>();
+    private void validate(final Object dto) {
+        final List<String> violations = new ArrayList<>();
         validator.validate(dto).forEach(field -> violations.add(field.getMessage()));
         if (!violations.isEmpty()) {
             throw new CustomValidationException(violations);
@@ -157,16 +158,20 @@ public class MessageServiceImpl implements MessageService {
     }
 
 
-    private String encryption(String content, SecretKey secretKey) {
+    private String encryption(final String content, final SecretKey secretKey) {
         try {
             return AESGCMUtil.encrypt(content, secretKey, AESGCMUtil.generateIV());
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new EncryptionFailureException(content);
         }
     }
 
-    private String decryption(String content, SecretKey key) throws Exception {
-        return AESGCMUtil.decrypt(content, key);
+    private String decryption(String content, SecretKey key) {
+        try {
+            return AESGCMUtil.decrypt(content, key);
+        } catch (Exception e) {
+            throw new DecryptionFailureException(content);
+        }
     }
 
     private String encode(SecretKey key) {

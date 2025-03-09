@@ -10,20 +10,9 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 import java.util.UUID;
 
-/*
- * store messages in database using this repository
- */
-
 @Repository
 public interface MessageRepository extends JpaRepository<MessageEntity, UUID> {
 
-
-
-    /*
-     * Will find a message entity using session entity .
-     * The message entity contains all messages and information
-     * about sender and receiver and session id too.
-     */
     @Transactional(rollbackOn = Exception.class)
     @Query("SELECT m FROM MessageEntity m WHERE m.sessionId = :sessionId")
     Optional<MessageEntity> findBySessionId(@Param("sessionId") final UUID sessionId);
