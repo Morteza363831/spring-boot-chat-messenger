@@ -7,9 +7,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Getter
 @ResponseStatus(HttpStatus.UNAUTHORIZED)
 public class AuthenticationFailureException extends BaseException {
-    private String message;
-    public AuthenticationFailureException(String message) {
-        super(message, HttpStatus.UNAUTHORIZED);
-        this.message = message;
+    public AuthenticationFailureException() {
+        super("Invalid username or password", HttpStatus.UNAUTHORIZED);
     }
 }
