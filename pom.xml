@@ -9,9 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.example</groupId>
-	<artifactId>spring-boot-chat-messenger</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>spring-boot-chat-messenger</name>
+	<artifactId>messenger</artifactId>
+	<version>v2.0.0</version>
+	<packaging>war</packaging>
+	<name>messenger</name>
 	<description>spring-boot-chat-messenger</description>
 	<url/>
 	<licenses>
