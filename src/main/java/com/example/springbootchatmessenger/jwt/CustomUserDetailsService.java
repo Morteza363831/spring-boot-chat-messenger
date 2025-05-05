@@ -52,7 +52,7 @@ public class CustomUserDetailsService implements UserDetailsService {
             userBuilder.authorities(result);
         }
         else {
-            throw new AuthenticationFailureException("User not found");
+            throw new AuthenticationFailureException();
         }
         return userBuilder.build();
     }

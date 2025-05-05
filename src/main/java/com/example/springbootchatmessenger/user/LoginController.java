@@ -1,5 +1,6 @@
 package com.example.springbootchatmessenger.user;
 
+import com.example.springbootchatmessenger.exceptions.AuthenticationFailureException;
 import com.example.springbootchatmessenger.exceptions.CustomEntityNotFoundException;
 import com.example.springbootchatmessenger.exceptions.CustomValidationException;
 import com.example.springbootchatmessenger.jwt.CustomAuthenticationManager;
@@ -66,6 +67,9 @@ public class LoginController {
         } catch (CustomEntityNotFoundException e) {
             log.error("User not found: {}", authenticationDto.getUsername());
             throw new CustomEntityNotFoundException(authenticationDto.getUsername());
+        } catch (AuthenticationFailureException failure) {
+            log.error("Authentication failure: {}", failure.getMessage());
+            throw new AuthenticationFailureException();
         } catch (Exception e) {
             log.error("Authentication failed for user: {}", authenticationDto.getUsername());
             throw new CustomValidationException(List.of(e.getMessage()));

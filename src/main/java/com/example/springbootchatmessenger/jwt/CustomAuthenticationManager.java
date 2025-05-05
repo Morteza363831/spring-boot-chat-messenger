@@ -1,5 +1,6 @@
 package com.example.springbootchatmessenger.jwt;
 
+import com.example.springbootchatmessenger.exceptions.AuthenticationFailureException;
 import com.example.springbootchatmessenger.user.UserEntity;
 import com.example.springbootchatmessenger.user.UserRepository;
 import com.example.springbootchatmessenger.utility.EncryptionUtil;
@@ -37,7 +38,7 @@ public class CustomAuthenticationManager implements AuthenticationManager {
         if (userEntityOptional.isPresent()) {
             UserEntity userEntity = userEntityOptional.get();
 
-            if (passwordEncoder.encode(authentication.getCredentials().toString()).equals(userEntity.getPassword())) {
+            if (passwordEncoder.matches(authentication.getCredentials().toString(), userEntity.getPassword())) {
                 final List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
                 final List<String> userRoles = Arrays.stream(EncryptionUtil.decrypt(userEntity.getAuthorities()).split(",")).toList();
                 userRoles.forEach(userRole -> grantedAuthorities.add(new SimpleGrantedAuthority(userRole)));
@@ -45,12 +46,11 @@ public class CustomAuthenticationManager implements AuthenticationManager {
                 return new UsernamePasswordAuthenticationToken(userEntity.getUsername(), authentication.getCredentials(), grantedAuthorities);
             }
             else {
-                log.error("Invalid password");
+                throw new AuthenticationFailureException();
             }
         }
         else {
-            log.error("Invalid username or password");
+            throw new AuthenticationFailureException();
         }
-        return null;
     }
 }
