@@ -1,9 +1,0 @@
-2024-11-07 13:07:51.441955+03:30 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(255)": "'{""messageContentList"":[{""sender"":""mhzd"",""receiver"":""admin"",""content"":""hi admin""... (272)"; SQL statement:
-update messages set content=?,session_entity_id=? where id=? [22001-224]
-2024-11-07 13:08:10.070337+03:30 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(255)": "'{""messageContentList"":[{""sender"":""mhzd"",""receiver"":""admin"",""content"":""hi admin""... (271)"; SQL statement:
-update messages set content=?,session_entity_id=? where id=? [22001-224]
-2024-11-07 13:08:30.137133+03:30 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(255)": "'{""messageContentList"":[{""sender"":""mhzd"",""receiver"":""admin"",""content"":""hi admin""... (268)"; SQL statement:
-update messages set content=?,session_entity_id=? where id=? [22001-224]
