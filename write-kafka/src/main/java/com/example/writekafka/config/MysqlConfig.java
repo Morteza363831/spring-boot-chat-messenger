@@ -46,7 +46,7 @@ public class MysqlConfig {
     {
         return builder
                 .dataSource(dataSource)
-                .packages("com.example.writekafka.mysql.model")
+                .packages("com.example.writekafka.model")
                 .persistenceUnit("mysql")
                 .build();
     };

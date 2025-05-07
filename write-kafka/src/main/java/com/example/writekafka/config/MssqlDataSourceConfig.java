@@ -41,7 +41,7 @@ public class MssqlDataSourceConfig {
             @Qualifier("mssqlDataSource") DataSource dataSource) {
         return builder
                 .dataSource(dataSource)
-                .packages("com.example.writekafka.mssql.model")
+                .packages("com.example.writekafka.model")
                 .persistenceUnit("mssql")
                 .build();
     }
