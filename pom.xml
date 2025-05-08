@@ -19,6 +19,7 @@
 
 	<modules>
 		<module>messenger</module>
+		<module>write-kafka</module>
 	</modules>
 
 	<properties>
