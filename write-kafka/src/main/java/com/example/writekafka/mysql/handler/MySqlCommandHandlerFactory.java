@@ -1,6 +1,6 @@
 package com.example.writekafka.mysql.handler;
 
-import com.example.messenger.utility.DataTypes;
+import com.example.messengerutilities.utility.DataTypes;
 import com.example.writekafka.utility.HandlerKey;
 import org.springframework.stereotype.Component;
 

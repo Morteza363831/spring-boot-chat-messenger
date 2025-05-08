@@ -1,8 +1,8 @@
 package com.example.writekafka.mysql.handler;
 
-import com.example.messenger.kafka.KafkaDataStructure;
-import com.example.messenger.utility.DataTypes;
-import com.example.messenger.utility.RequestTypes;
+import com.example.messengerutilities.model.KafkaDataStructure;
+import com.example.messengerutilities.utility.DataTypes;
+import com.example.messengerutilities.utility.RequestTypes;
 import com.example.writekafka.model.Message;
 import com.example.writekafka.model.Session;
 import com.example.writekafka.model.User;

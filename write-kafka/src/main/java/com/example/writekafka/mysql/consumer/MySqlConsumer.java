@@ -1,7 +1,8 @@
 package com.example.writekafka.mysql.consumer;
 
-import com.example.messenger.kafka.KafkaDataStructure;
-import com.example.messenger.utility.TopicNames;
+
+import com.example.messengerutilities.model.KafkaDataStructure;
+import com.example.messengerutilities.utility.TopicNames;
 import com.example.writekafka.mysql.handler.MySqlCommandDispatcher;
 import com.example.writekafka.utility.ConsumerTypes;
 import lombok.RequiredArgsConstructor;

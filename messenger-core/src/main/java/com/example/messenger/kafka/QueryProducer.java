@@ -1,7 +1,8 @@
 package com.example.messenger.kafka;
 
-import com.example.messenger.utility.DataTypes;
-import com.example.messenger.utility.RequestTypes;
+import com.example.messengerutilities.model.KafkaDataStructure;
+import com.example.messengerutilities.utility.DataTypes;
+import com.example.messengerutilities.utility.RequestTypes;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;

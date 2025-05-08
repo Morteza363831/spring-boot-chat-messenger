@@ -1,6 +1,6 @@
 package com.example.messenger.kafka;
 
-import com.example.messenger.user.UserEntity;
+import com.example.messengerutilities.model.KafkaDataStructure;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

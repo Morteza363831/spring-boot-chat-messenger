@@ -1,6 +1,7 @@
 package com.example.writekafka.mysql.handler;
 
-import com.example.messenger.utility.RequestTypes;
+
+import com.example.messengerutilities.utility.RequestTypes;
 
 public interface MySqlCommandHandler<T> {
 

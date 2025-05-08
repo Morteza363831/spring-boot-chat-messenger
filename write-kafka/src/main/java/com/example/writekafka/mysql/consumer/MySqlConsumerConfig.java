@@ -1,6 +1,6 @@
 package com.example.writekafka.mysql.consumer;
 
-import com.example.messenger.kafka.KafkaDataStructure;
+import com.example.messengerutilities.model.KafkaDataStructure;
 import com.example.writekafka.utility.ConsumerTypes;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;

@@ -1,7 +1,7 @@
 package com.example.writekafka.mssql.consumer;
 
-import com.example.messenger.kafka.KafkaDataStructure;
-import com.example.messenger.utility.TopicNames;
+import com.example.messengerutilities.model.KafkaDataStructure;
+import com.example.messengerutilities.utility.TopicNames;
 import com.example.writekafka.mssql.handler.MsSqlCommandDispatcher;
 import com.example.writekafka.utility.ConsumerTypes;
 import lombok.RequiredArgsConstructor;

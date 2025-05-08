@@ -18,6 +18,7 @@
 	<description>spring-boot-chat-messenger</description>
 
 	<modules>
+		<module>messenger-utilities</module>
 		<module>messenger-core</module>
 		<module>write-kafka</module>
 	</modules>
@@ -34,6 +35,11 @@
 				<version>3.3.4</version> <!-- Match your Spring Boot version -->
 				<type>pom</type>
 				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>com.example</groupId>
+				<artifactId>messenger-utilities</artifactId>
+				<version>0.0.1-SNAPSHOT</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

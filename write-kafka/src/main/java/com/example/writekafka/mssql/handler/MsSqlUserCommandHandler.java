@@ -1,6 +1,6 @@
 package com.example.writekafka.mssql.handler;
 
-import com.example.messenger.utility.RequestTypes;
+import com.example.messengerutilities.utility.RequestTypes;
 import com.example.writekafka.model.User;
 import com.example.writekafka.mssql.repository.UserRepositoryMsSql;
 import lombok.RequiredArgsConstructor;
