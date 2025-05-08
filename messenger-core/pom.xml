@@ -8,7 +8,7 @@
         <version>v2.0.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <artifactId>messenger</artifactId>
+    <artifactId>messenger-core</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>war</packaging>
     <name>messenger</name>

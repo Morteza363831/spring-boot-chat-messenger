@@ -81,7 +81,7 @@
 
         <dependency>
             <groupId>com.example</groupId>
-            <artifactId>messenger</artifactId>
+            <artifactId>messenger-core</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>

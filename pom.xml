@@ -18,7 +18,7 @@
 	<description>spring-boot-chat-messenger</description>
 
 	<modules>
-		<module>messenger</module>
+		<module>messenger-core</module>
 		<module>write-kafka</module>
 	</modules>
 
