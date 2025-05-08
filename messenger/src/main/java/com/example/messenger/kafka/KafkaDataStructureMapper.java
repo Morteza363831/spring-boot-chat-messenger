@@ -14,5 +14,5 @@ public interface KafkaDataStructureMapper {
     @Mapping(target = "requestType", expression = "java(requestType)")
     @Mapping(target = "dataType", expression = "java(dataType)")
     @Mapping(target = "data", expression = "java(data)")
-    KafkaDataStructure toKafkaDataStructure(@Context Object data, @Context RequestTypes requestType, @Context DataTypes dataType);
+    KafkaDataStructure toKafkaDataStructure(Object data, @Context RequestTypes requestType, @Context DataTypes dataType);
 }
