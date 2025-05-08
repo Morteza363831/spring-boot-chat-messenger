@@ -23,7 +23,7 @@ public class MsSqlConsumerConfig {
     @Value(value = "${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
-    @Bean
+    @Bean(value = "mysqlConsumerFactory")
     public ConsumerFactory<String, KafkaDataStructure> consumerFactory() {
         Map<String, Object> props = new HashMap<>();
 
@@ -35,7 +35,7 @@ public class MsSqlConsumerConfig {
         return new DefaultKafkaConsumerFactory<>(props);
     }
 
-    @Bean
+    @Bean(value = "mySqlKafkaListenerContainerFactory")
     public ConcurrentKafkaListenerContainerFactory<String, KafkaDataStructure> kafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, KafkaDataStructure> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
