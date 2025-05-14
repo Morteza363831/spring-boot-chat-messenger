@@ -8,15 +8,22 @@
         <version>v2.0.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <artifactId>messenger</artifactId>
+    <artifactId>messenger-core</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>war</packaging>
-    <name>messenger</name>
+    <name>messenger-core</name>
     <description>messenger</description>
 
     <dependencies>
+
+        <!--local modules-->
         <dependency>
-            <!-- spring boot dependencies -->
+            <groupId>com.example</groupId>
+            <artifactId>messenger-utilities</artifactId>
+        </dependency>
+
+        <!-- spring boot dependencies -->
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>

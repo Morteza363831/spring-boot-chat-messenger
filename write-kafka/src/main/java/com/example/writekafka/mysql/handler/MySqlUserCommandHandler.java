@@ -1,6 +1,6 @@
 package com.example.writekafka.mysql.handler;
 
-import com.example.messenger.utility.RequestTypes;
+import com.example.messengerutilities.utility.RequestTypes;
 import com.example.writekafka.model.User;
 import com.example.writekafka.mysql.repository.UserRepositoryMySql;
 import lombok.RequiredArgsConstructor;

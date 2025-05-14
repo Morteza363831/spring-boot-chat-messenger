@@ -1,7 +1,8 @@
 package com.example.messenger.kafka;
 
-import com.example.messenger.utility.DataTypes;
-import com.example.messenger.utility.RequestTypes;
+import com.example.messengerutilities.model.KafkaDataStructure;
+import com.example.messengerutilities.utility.DataTypes;
+import com.example.messengerutilities.utility.RequestTypes;
 import org.mapstruct.*;
 
 /**

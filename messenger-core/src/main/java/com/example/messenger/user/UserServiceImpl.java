@@ -83,6 +83,7 @@ public class UserServiceImpl implements UserService {
         userRepository
                 .findByUsername(userDeleteDto.getUsername())
                 .ifPresentOrElse(userRepository::delete, () -> {throw new CustomEntityNotFoundException(userDeleteDto.getUsername());});
+
     }
 
     @Override

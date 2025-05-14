@@ -1,4 +1,4 @@
-package com.example.messenger.utility;
+package com.example.messengerutilities.utility;
 
 public class TopicNames {
 

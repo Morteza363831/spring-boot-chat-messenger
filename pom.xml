@@ -18,16 +18,19 @@
 	<description>spring-boot-chat-messenger</description>
 
 	<modules>
-		<module>messenger</module>
+		<module>messenger-utilities</module>
+		<module>messenger-core</module>
 		<module>write-kafka</module>
 	</modules>
 
 	<properties>
 		<java.version>17</java.version>
+		<messenger-utilities.version>0.0.1-SNAPSHOT</messenger-utilities.version>
 	</properties>
 
 	<dependencyManagement>
 		<dependencies>
+			<!-- consider all spring boot starter dependencies be compatible with spring boot 3.3.4 -->
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-dependencies</artifactId>
@@ -35,25 +38,12 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
+			<dependency>
+				<groupId>com.example</groupId>
+				<artifactId>messenger-utilities</artifactId>
+				<version>${messenger-utilities.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
-
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<excludes>
-						<exclude>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-						</exclude>
-					</excludes>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
 
 </project>
