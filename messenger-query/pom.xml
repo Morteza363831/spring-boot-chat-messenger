@@ -31,6 +31,12 @@
     </properties>
     <dependencies>
 
+        <!-- local modules -->
+        <dependency>
+            <groupId>com.example</groupId>
+            <artifactId>messenger-utilities</artifactId>
+        </dependency>
+
         <!-- spring boot dependencies -->
 
         <dependency>
