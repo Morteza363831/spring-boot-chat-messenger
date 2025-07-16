@@ -68,9 +68,9 @@ This is a **Spring Boot** based **real-time chat messenger** that utilizes **Web
 
 Thanks to these awesome people for contributing:
 
-| [<img src="https://github.com/morteza363831.png" width="100px" alt="Morteza Mahdi Zadeh"/>](https://github.com/morteza363831) |
-| :----------------------------------------------------------------------------------------------------------------------------: |
-| [Morteza Mahdi Zadeh](https://github.com/morteza363831)                                                                        |
+| [<img src="https://github.com/morteza363831.png" width="100px" alt="Morteza Mahdi Zadeh"/>](https://github.com/morteza363831) | [<img src="https://github.com/username.png" width="100px" alt="Mohamad Reza Asgari"/>](https://github.com/username) |
+| :----------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------: |
+| [Morteza Mahdi Zadeh](https://github.com/morteza363831) | [Mohamad Reza Asgari](https://github.com/username) 
 
 
 ---
