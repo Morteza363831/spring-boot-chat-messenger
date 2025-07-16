@@ -63,6 +63,18 @@ This is a **Spring Boot** based **real-time chat messenger** that utilizes **Web
 
 ---
 
+
+## 👥 Contributors
+
+Thanks to these awesome people for contributing:
+
+| [<img src="https://github.com/morteza363831.png" width="100px" alt="Morteza Mahdi Zadeh"/>](https://github.com/morteza363831) |
+| :----------------------------------------------------------------------------------------------------------------------------: |
+| [Morteza Mahdi Zadeh](https://github.com/morteza363831)                                                                        |
+
+
+---
+
 ## 📝 Contributing
 Feel free to **fork**, **star**, and **contribute** to this project! Follow best practices and submit PRs with clear documentation.
 
