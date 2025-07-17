@@ -10,6 +10,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -38,5 +42,14 @@ public class UserQueryServiceImpl implements UserQueryService {
     @Override
     public boolean existsByUsername(String username) {
         return elasticsearchRepository.existsByUsername(username);
+    }
+
+    @Override
+    public List<User> findAll() {
+        final List<User> retrievedUsers = new ArrayList<>();
+        elasticsearchRepository.findAll().forEach(userDocument -> {
+            retrievedUsers.add(userMapper.toUser(userDocument));
+        });
+        return retrievedUsers;
     }
 }
