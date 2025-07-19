@@ -3,6 +3,7 @@ package com.example.messenger.kafka;
 import com.example.messengerutilities.model.KafkaDataStructure;
 import com.example.messengerutilities.utility.DataTypes;
 import com.example.messengerutilities.utility.RequestTypes;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -30,6 +31,7 @@ public class CommandProducer {
             if (exception != null) {
                 // TODO
                 log.error("{} did not sent", object.toString());
+                return;
             }
             log.info("{} sent to topic: {}", object.toString(), topic);
         });
