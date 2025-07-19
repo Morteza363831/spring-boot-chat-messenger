@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface UserRepositoryMySql extends JpaRepository<User, UUID> {
+public interface UserRepositoryMySql extends JpaRepository<User, String> {
 
     @Transactional(rollbackOn = Exception.class)
     @Lazy
