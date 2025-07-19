@@ -1,13 +1,10 @@
 package com.example.messengercommand.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -21,19 +18,16 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", nullable = false)
-    private UUID id;
+    private String id;
 
     @Size(max = 25)
-    @NotNull
     @Column(name = "username", nullable = false, length = 25)
     private String username;
 
-    @NotNull
     @Column(name = "enabled", nullable = false)
     private Boolean enabled = false;
 
     @Size(max = 100)
-    @NotNull
     @Column(name = "email", nullable = false, length = 100)
     private String email;
 
@@ -45,14 +39,18 @@ public class User {
     @Column(name = "last_name", length = 50)
     private String lastName;
 
-    @NotNull
     @Lob
     @Column(name = "authorities", nullable = false)
     private String authorities;
 
     @Size(max = 255)
-    @NotNull
     @Column(name = "password", nullable = false)
     private String password;
+
+    @PrePersist
+    private void onCreate() {
+        this.enabled = true;
+        this.authorities = "USER";
+    }
 
 }
