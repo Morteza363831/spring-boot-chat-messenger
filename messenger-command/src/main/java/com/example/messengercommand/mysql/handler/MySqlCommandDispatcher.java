@@ -6,17 +6,21 @@ import com.example.messengerutilities.utility.RequestTypes;
 import com.example.messengercommand.model.Message;
 import com.example.messengercommand.model.Session;
 import com.example.messengercommand.model.User;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
  *  Dispatchers are same for now ! (because we are using two relational database)
  * */
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MySqlCommandDispatcher {
 
+    private final ObjectMapper mapper;
 
     private final MySqlCommandHandlerFactory mySqlCommandHandlerFactory;
 
@@ -40,23 +44,32 @@ public class MySqlCommandDispatcher {
 
 
     private User convertToUser(Object data) {
-        if (data instanceof User) {
-            return (User) data;
+        try {
+            return mapper.convertValue(data, User.class);
         }
-        return null;
+        catch (Exception e) {
+            log.error("Error converting data to user", e);
+            return null;
+        }
     }
 
     private Session convertToSession(Object data) {
-        if (data instanceof Session) {
-            return (Session) data;
+        try {
+            return mapper.convertValue(data, Session.class);
         }
-        return null;
+        catch (Exception e) {
+            log.error("Error converting data to session", e);
+            return null;
+        }
     }
 
     private Message convertToMessage(Object data) {
-        if (data instanceof Message) {
-            return (Message) data;
+        try {
+            return mapper.convertValue(data, Message.class);
         }
-        return null;
+        catch (Exception e) {
+            log.error("Error converting data to message", e);
+            return null;
+        }
     }
 }
