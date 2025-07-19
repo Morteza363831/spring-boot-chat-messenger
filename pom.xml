@@ -20,7 +20,7 @@
 	<modules>
 		<module>messenger-utilities</module>
 		<module>messenger-core</module>
-		<module>write-kafka</module>
+		<module>messenger-command</module>
 		<module>messenger-query</module>
 	</modules>
 
