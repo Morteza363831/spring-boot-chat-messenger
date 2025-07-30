@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import jakarta.validation.constraints.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -66,7 +67,7 @@ public class UserController {
     @PreAuthorize("isMatch(#username) || hasAccess('ROLE_ADMIN')")
     @PutMapping("/{username}")
     public ResponseEntity<?> updateUser(
-            @PathVariable String username,
+            @PathVariable @Pattern(regexp = "^[a-zA-Z0-9_-]{3,16}$") String username,
             @RequestBody UserUpdateDto user) {
         userService.updateUser(username, user);
         return ResponseEntity
@@ -120,7 +121,7 @@ public class UserController {
     @ApiResponse(responseCode = "400", description = "Validation failed or Entity not found")
     @ApiResponse(responseCode = "500", description = "User creation failed")
     @SecurityRequirement(name = "bearerAuth")
-    @PreAuthorize("isMatch(userDeleteDto.getUsername()) || hasAccess('ROLE_ADMIN')")
+    @PreAuthorize("isMatch(#userDeleteDto.getUsername()) || hasAccess('ROLE_ADMIN')")
     @DeleteMapping("/delete")
     public ResponseEntity<?> deleteUser(@RequestBody final UserDeleteDto userDeleteDto) {
         userService.deleteUserById(userDeleteDto);
