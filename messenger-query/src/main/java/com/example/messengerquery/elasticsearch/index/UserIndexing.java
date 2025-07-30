@@ -5,6 +5,7 @@ import com.example.messengerquery.mapper.UserMapper;
 import com.example.messengerquery.model.User;
 import com.example.messengerquery.model.UserDocument;
 import com.example.messengerquery.mysql.repository.UserRepository;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -22,6 +23,11 @@ public class UserIndexing implements Indexing<User, UserDocument> {
 
     private final UserRepository databaseRepository;
     private final UserElasticsearchRepository elasticsearchRepository;
+
+    @PreDestroy
+    private void unIndex() {
+        elasticsearchRepository.deleteAll();
+    }
 
     @Override
     public void index() {
