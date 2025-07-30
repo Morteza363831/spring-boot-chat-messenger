@@ -1,5 +1,6 @@
 package com.example.messengercommand.model;
 
+import com.example.messengercommand.utility.EncryptionUtil;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -16,7 +17,6 @@ import lombok.ToString;
 })
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", nullable = false)
     private String id;
 
@@ -48,9 +48,21 @@ public class User {
     private String password;
 
     @PrePersist
-    private void onCreate() {
-        this.enabled = true;
-        this.authorities = "USER";
+    public void prePersist() {
+        if (authorities == null || authorities.isBlank() || EncryptionUtil.isEncrypted(authorities)) {
+            authorities = "ROLE_USER";
+            authorities= EncryptionUtil.encrypt(authorities);
+        }
+        if (!enabled) {
+            enabled = true;
+        }
+    }
+
+    @PreUpdate
+    private void preUpdate() {
+        if (!authorities.isBlank() && EncryptionUtil.isEncrypted(authorities)) {
+            authorities = EncryptionUtil.encrypt(authorities);
+        }
     }
 
 }
