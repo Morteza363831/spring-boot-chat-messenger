@@ -1,8 +1,8 @@
 package com.example.messenger.jwt;
 
 import com.example.messenger.exceptions.AuthenticationFailureException;
+import com.example.messenger.user.UserQueryClient;
 import com.example.messenger.user.UserEntity;
-import com.example.messenger.user.UserRepository;
 import com.example.messenger.utility.EncryptionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +24,11 @@ import java.util.Optional;
 @Slf4j
 public class CustomAuthenticationManager implements AuthenticationManager {
 
+    // Deprecated
+    /*@Autowired
+    private UserRepository userRepository;*/
     @Autowired
-    private UserRepository userRepository;
+    private UserQueryClient userQueryClient;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -33,7 +36,9 @@ public class CustomAuthenticationManager implements AuthenticationManager {
     @Override
     public Authentication authenticate(final Authentication authentication) throws AuthenticationException {
 
-        final Optional<UserEntity> userEntityOptional = userRepository.findByUsername(authentication.getName());
+        final Optional<UserEntity> userEntityOptional = userQueryClient.getUser(authentication.getName());
+        // Deprecated
+        // final Optional<UserEntity> userEntityOptional = userRepository.findByUsername(authentication.getName());
 
         if (userEntityOptional.isPresent()) {
             UserEntity userEntity = userEntityOptional.get();
