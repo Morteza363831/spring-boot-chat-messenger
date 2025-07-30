@@ -17,12 +17,10 @@ import java.util.UUID;
 @Setter
 @ToString
 @AllArgsConstructor
-@NoArgsConstructor
 @Table(name = "users")
 public class UserEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(nullable = false, updatable = false, unique = true)
     private UUID id;
     @Column(nullable = false, unique = true, columnDefinition = "varchar(25)")
@@ -40,6 +38,12 @@ public class UserEntity {
     private String authorities;
     @Column(nullable = false, columnDefinition = "varchar(255)")
     private String password;
+
+    public UserEntity() {
+        if (id == null) {
+            id = UUID.randomUUID();
+        }
+    }
 
     @PrePersist
     public void prePersist() {
