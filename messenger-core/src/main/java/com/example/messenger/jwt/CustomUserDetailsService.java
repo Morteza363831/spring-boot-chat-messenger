@@ -1,8 +1,8 @@
 package com.example.messenger.jwt;
 
 import com.example.messenger.exceptions.AuthenticationFailureException;
+import com.example.messenger.user.UserQueryClient;
 import com.example.messenger.user.UserEntity;
-import com.example.messenger.user.UserRepository;
 import com.example.messenger.utility.EncryptionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +22,11 @@ import java.util.Optional;
 @Slf4j
 public class CustomUserDetailsService implements UserDetailsService {
 
+    // Deprecated
+    /*@Autowired
+    private UserRepository userRepository;*/
     @Autowired
-    private UserRepository userRepository;
+    private UserQueryClient userQueryClient;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -31,7 +34,9 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
 
-        final Optional<UserEntity> optionalUserEntity = userRepository.findByUsername(username);
+        final Optional<UserEntity> optionalUserEntity = userQueryClient.getUser(username);
+        // Deprecated
+        // final Optional<UserEntity> optionalUserEntity = userRepository.findByUsername(username);
 
         User.UserBuilder userBuilder = null;
 

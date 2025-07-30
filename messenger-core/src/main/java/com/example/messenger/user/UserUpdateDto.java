@@ -20,10 +20,9 @@ import java.io.Serializable;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UserUpdateDto implements Serializable {
-    @NotBlank(message = "Username cannot be null")
+
     private String username;
     @Email(message = "Invalid email type", regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$")
-    @NotBlank(message = "Email cannot be null")
     private String email;
     @Size(message = "First name size must be less than 50", max = 50)
     private String firstName;

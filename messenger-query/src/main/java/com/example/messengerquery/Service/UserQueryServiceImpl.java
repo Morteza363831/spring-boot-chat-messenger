@@ -36,7 +36,7 @@ public class UserQueryServiceImpl implements UserQueryService {
 
         return elasticsearchRepository.findByUsername(username)
                 .map(userMapper::toUser)
-                .orElseThrow(() -> new RuntimeException(""));
+                .orElse(null);
     }
 
     @Override
