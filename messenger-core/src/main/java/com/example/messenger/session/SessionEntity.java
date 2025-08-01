@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.UUID;
 
 @Entity
-@Table(name = "sessions", uniqueConstraints = @UniqueConstraint(columnNames = {"user1_id", "user2_id"}))
+@Table(name = "sessions")
 @Getter
 @Setter
 @ToString
@@ -20,7 +20,6 @@ import java.util.UUID;
 public class SessionEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(nullable = false)
     private UUID id;
 
@@ -32,9 +31,6 @@ public class SessionEntity {
     @JoinColumn(name = "user2_id", nullable = false, referencedColumnName = "id")
     private UserEntity user2;
 
-    @OneToOne(orphanRemoval = true, cascade = CascadeType.ALL)
-    private MessageEntity messageEntity;
-
     @PrePersist
     @PreUpdate
     public void validateUsers() {
@@ -43,8 +39,8 @@ public class SessionEntity {
 
     public static SessionEntity createSession(UserEntity user1, UserEntity user2) {
         if (user1.getId().compareTo(user2.getId()) > 0) {
-            return new SessionEntity(null, user2, user1, null); // Always store in consistent order
+            return new SessionEntity(UUID.randomUUID(), user2, user1); // Always store in consistent order
         }
-        return new SessionEntity(null, user1, user2, null);
+        return new SessionEntity(UUID.randomUUID(), user1, user2);
     }
 }

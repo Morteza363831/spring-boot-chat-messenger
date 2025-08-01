@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.Optional;
 
 @Tag(name = "Session Management", description = "Operations related to managing chat sessions")
@@ -29,7 +30,7 @@ public class SessionTempController {
     @Operation(summary = "Create a chat session", description = "Creates a new session between two users")
     @ApiResponse(responseCode = "201", description = "Session created successfully")
     @ApiResponse(responseCode = "409", description = "Session already exists")
-    @PreAuthorize("isMatch(sessionCreateDto.getUser1()) || hasAccess('ROLE_ADMIN')")
+    @PreAuthorize("isMatch(#sessionCreateDto.getUser1()) || hasAccess('ROLE_ADMIN')")
     @PostMapping("/create")
     public ResponseEntity<?> createSession(@RequestBody SessionCreateDto sessionCreateDto) {
         final Optional<SessionDto> sessionEntityDto = Optional.ofNullable(sessionService.save(sessionCreateDto));
@@ -52,7 +53,7 @@ public class SessionTempController {
                         "failure",
                         HttpStatus.INTERNAL_SERVER_ERROR.value(),
                         "Session creation failed",
-                        new Object(),
+                        Map.of(),
                         "/api/v1/sessions/create"
                 ));
     }
@@ -77,17 +78,17 @@ public class SessionTempController {
     @Operation(summary = "Delete a chat session", description = "Deletes an existing chat session")
     @ApiResponse(responseCode = "200", description = "Session deleted successfully")
     @ApiResponse(responseCode = "404", description = "Session not found")
-    @PreAuthorize("hasAccess(sessionDeleteDto.getId())|| hasAccess('ROLE_ADMIN')")
+    @PreAuthorize("isMatch(#sessionDeleteDto.getUser1())|| hasAccess('ROLE_ADMIN')")
     @DeleteMapping("/delete")
     public ResponseEntity<?> deleteSession(@RequestBody SessionDeleteDto sessionDeleteDto) {
         sessionService.deleteSession(sessionDeleteDto);
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(new ResponseResult<>(
+                .body(new ResponseResult<Object>(
                         "success",
                         HttpStatus.OK.value(),
                         "Session deleted successfully",
-                        new Object(),
+                        Map.of(),
                         "/api/v1/sessions/delete"
                 ));
     }
