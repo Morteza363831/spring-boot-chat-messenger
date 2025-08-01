@@ -12,7 +12,7 @@ import java.util.UUID;
 public interface SessionElasticsearchRepository extends ElasticsearchRepository<SessionDocument, String> {
 
 
-    @Query("""
+/*    @Query("""
 {
     "bool": {
         "should": [
@@ -35,5 +35,9 @@ public interface SessionElasticsearchRepository extends ElasticsearchRepository<
         ]
     }
 }""")
-    Optional<SessionDocument> findByUser1IdAndUser2Id(UUID user1Id, UUID user2Id);
+    Optional<SessionDocument> findByUser1IdAndUser2Id(String user1Id, String user2Id);*/
+
+    Optional<SessionDocument> findByUser1IdAndUser2Id(String user1Id, String user2Id);
+
+
 }

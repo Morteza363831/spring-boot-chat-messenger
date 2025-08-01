@@ -17,9 +17,7 @@ public class SessionDocument {
     @Id
     private String id;
 
-    private UUID user1Id;
+    private UserDocument user1;
 
-    private UUID user2Id;
-
-    private Message messageEntity;
+    private UserDocument user2;
 }
