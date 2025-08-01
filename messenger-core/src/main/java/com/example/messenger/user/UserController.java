@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -76,7 +77,7 @@ public class UserController {
                         "success",
                         HttpStatus.NO_CONTENT.value(),
                         "User updated successfully",
-                        new Object(),
+                        Map.of(),
                         "/api/v1/users/update"
                 ));
     }
@@ -131,7 +132,7 @@ public class UserController {
                         "Success",
                         HttpStatus.OK.value(),
                         "User founded successfully",
-                        new Object(),
+                        Map.of(),
                         "/api/v1/users/get"
                 ));
     }

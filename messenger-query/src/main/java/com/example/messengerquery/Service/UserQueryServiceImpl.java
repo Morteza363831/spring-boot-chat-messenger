@@ -5,14 +5,17 @@ import com.example.messengerquery.elasticsearch.repository.UserElasticsearchRepo
 import com.example.messengerquery.mapper.UserMapper;
 import com.example.messengerquery.model.User;
 import com.example.messengerquery.model.UserDocument;
+import com.example.messengerquery.mysql.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -22,19 +25,24 @@ public class UserQueryServiceImpl implements UserQueryService {
     private final UserMapper userMapper;
 
     private final UserElasticsearchRepository elasticsearchRepository;
+    private final UserRepository userRepository;
     private final Indexing<User, UserDocument> userIndexing;
-
 
     @PostConstruct
     private void init() {
-        userIndexing.index();
+        userIndexing.reindex();
     }
 
 
     @Override
     public User findByUsername(String username) {
-
-        return elasticsearchRepository.findByUsername(username)
+        // find user from index
+        Optional<UserDocument> userDocumentOptional = elasticsearchRepository.findByUsername(username);
+        // sync with db if not found
+        if (userDocumentOptional.isEmpty()) {
+            userDocumentOptional = syncUser(username);
+        }
+        return userDocumentOptional
                 .map(userMapper::toUser)
                 .orElse(null);
     }
@@ -51,5 +59,11 @@ public class UserQueryServiceImpl implements UserQueryService {
             retrievedUsers.add(userMapper.toUser(userDocument));
         });
         return retrievedUsers;
+    }
+
+    private Optional<UserDocument> syncUser(String username) {
+        return userRepository.findByUsername(username)
+                .map(userMapper::toUserDocument)
+                .map(elasticsearchRepository::save);
     }
 }

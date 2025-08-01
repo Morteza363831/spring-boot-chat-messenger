@@ -27,14 +27,14 @@ public class User {
     @Column(name = "username", nullable = false, length = 25)
     private String username;
 
-    @NotNull
-    @Column(name = "enabled", nullable = false)
-    private Boolean enabled = false;
-
     @Size(max = 100)
     @NotNull
     @Column(name = "email", nullable = false, length = 100)
     private String email;
+
+    @NotNull
+    @Column(name = "enabled", nullable = false)
+    private Boolean enabled = false;
 
     @Size(max = 50)
     @Column(name = "first_name", length = 50)

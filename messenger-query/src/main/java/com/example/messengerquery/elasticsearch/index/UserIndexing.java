@@ -30,6 +30,12 @@ public class UserIndexing implements Indexing<User, UserDocument> {
     }
 
     @Override
+    public void reindex() {
+        unIndex();
+        index();
+    }
+
+    @Override
     public void index() {
 
         int page = 0;
