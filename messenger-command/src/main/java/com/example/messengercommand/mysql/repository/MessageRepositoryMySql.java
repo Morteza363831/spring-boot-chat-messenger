@@ -11,9 +11,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface MessageRepositoryMySql extends JpaRepository<Message, UUID> {
+public interface MessageRepositoryMySql extends JpaRepository<Message, String> {
 
     @Transactional(rollbackOn = Exception.class)
     @Query("SELECT m FROM Message m WHERE m.sessionId = :sessionId")
-    Optional<Message> findBySessionId(@Param("sessionId") final UUID sessionId);
+    Optional<Message> findBySessionId(@Param("sessionId") final String sessionId);
 }

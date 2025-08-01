@@ -18,9 +18,9 @@ import java.util.UUID;
 })
 public class Message {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", nullable = false)
-    private UUID id;
+    @Size(max = 36)
+    @Column(name = "id", nullable = false, length = 36)
+    private String id;
 
     @NotNull
     @Lob
@@ -29,7 +29,7 @@ public class Message {
 
     @NotNull
     @Column(name = "session_id", nullable = false)
-    private UUID sessionId;
+    private String sessionId;
 
     @Size(max = 255)
     @NotNull

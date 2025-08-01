@@ -2,6 +2,7 @@ package com.example.messengercommand.model;
 
 import com.example.messengercommand.utility.EncryptionUtil;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,25 +12,23 @@ import lombok.ToString;
 @Setter
 @ToString
 @Entity
-@Table(name = "users", uniqueConstraints = {
-        @UniqueConstraint(name = "UQ__users__F3DBC572F7A0BFA8", columnNames = {"username"}),
-        @UniqueConstraint(name = "UQ__users__AB6E6164A43CA5BA", columnNames = {"email"})
-})
+@Table(name = "users")
 public class User {
     @Id
-    @Column(name = "id", nullable = false)
+    @Size(max = 36)
+    @Column(name = "id", nullable = false, length = 36)
     private String id;
 
     @Size(max = 25)
     @Column(name = "username", nullable = false, length = 25)
     private String username;
 
-    @Column(name = "enabled", nullable = false)
-    private Boolean enabled = false;
-
     @Size(max = 100)
     @Column(name = "email", nullable = false, length = 100)
     private String email;
+
+    @Column(name = "enabled", nullable = false)
+    private Boolean enabled = false;
 
     @Size(max = 50)
     @Column(name = "first_name", length = 50)
