@@ -1,7 +1,6 @@
 package com.example.messenger.message;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.validation.constraints.NotNull;
 import lombok.Value;
 
 import java.io.Serializable;
@@ -17,5 +16,5 @@ public class MessageDto implements Serializable {
     UUID id;
     String content;
     UUID sessionId;
-    String encryptedAESKey;
+    String encryptedAesKey;
 }

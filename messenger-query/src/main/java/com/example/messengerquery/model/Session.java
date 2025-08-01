@@ -5,37 +5,25 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.Immutable;
-import org.springframework.data.elasticsearch.annotations.Document;
-
-import java.util.UUID;
 
 @Getter
 @Setter
 @Entity
-@Immutable
-@Table(name = "sessions", uniqueConstraints = {
-        @UniqueConstraint(name = "uq_session_users", columnNames = {"user1_id", "user2_id"}),
-        @UniqueConstraint(name = "message_entity_id", columnNames = {"message_entity"})
-})
+@Table(name = "sessions")
 public class Session {
     @Id
-    @Size(max = 16)
-    @Column(name = "id", nullable = false, length = 16)
+    @Size(max = 36)
+    @Column(name = "id", nullable = false, length = 36)
     private String id;
 
-    @Size(max = 16)
     @NotNull
-    @Column(name = "user1_id", nullable = false, length = 16)
-    private UUID user1Id;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user1_id", referencedColumnName = "id", nullable = false)
+    private User user1;
 
-    @Size(max = 16)
     @NotNull
-    @Column(name = "user2_id", nullable = false, length = 16)
-    private UUID user2Id;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "message_entity")
-    private Message messageEntity;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user2_id", referencedColumnName = "id", nullable = false)
+    private User user2;
 
 }

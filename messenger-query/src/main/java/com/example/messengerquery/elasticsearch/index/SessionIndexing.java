@@ -5,6 +5,7 @@ import com.example.messengerquery.mapper.SessionMapper;
 import com.example.messengerquery.model.Session;
 import com.example.messengerquery.model.SessionDocument;
 import com.example.messengerquery.mysql.repository.SessionRepository;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -23,6 +24,16 @@ public class SessionIndexing implements Indexing<Session, SessionDocument> {
     private final SessionRepository databaseRepository;
     private final SessionElasticsearchRepository elasticsearchRepository;
 
+    @PreDestroy
+    private void unIndex() {
+        elasticsearchRepository.deleteAll();
+    }
+
+    @Override
+    public void reindex() {
+        unIndex();
+        index();
+    }
 
     @Override
     public void index() {
@@ -46,7 +57,7 @@ public class SessionIndexing implements Indexing<Session, SessionDocument> {
     }
 
     private Page<Session> getAllSessions(int page, int size) {
-        return databaseRepository.findAll(PageRequest.of(page, size));
+        return databaseRepository.findAllEntityGraph(PageRequest.of(page, size));
     }
 
     private void indexSessions(List<SessionDocument> sessionDocumentList) {

@@ -19,7 +19,7 @@ public class MessageDocument {
 
     private String content;
 
-    private UUID sessionId;
+    private String sessionId;
 
     private String encryptedAesKey;
 }

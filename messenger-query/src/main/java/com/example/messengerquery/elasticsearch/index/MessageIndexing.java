@@ -5,6 +5,7 @@ import com.example.messengerquery.mapper.MessageMapper;
 import com.example.messengerquery.model.Message;
 import com.example.messengerquery.model.MessageDocument;
 import com.example.messengerquery.mysql.repository.MessageRepository;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -23,6 +24,17 @@ public class MessageIndexing implements Indexing<Message, MessageDocument> {
 
     private final MessageRepository databaseRepository;
     private final MessageElasticsearchRepository elasticsearchRepository;
+
+    @PreDestroy
+    private void unIndex() {
+        elasticsearchRepository.deleteAll();
+    }
+
+    @Override
+    public void reindex() {
+        unIndex();
+        index();
+    }
 
     @Override
     public void index() {
@@ -52,6 +64,8 @@ public class MessageIndexing implements Indexing<Message, MessageDocument> {
     private void indexMessages(List<MessageDocument> messageDocumentList) {
         try {
             elasticsearchRepository.saveAll(messageDocumentList);
+            Iterable<MessageDocument> list = elasticsearchRepository.findAll();
+            System.out.println("adsff");
         }
         catch (Exception e) {
             log.error(Arrays.toString(e.getStackTrace()));

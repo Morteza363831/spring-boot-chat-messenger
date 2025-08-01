@@ -10,6 +10,6 @@ import java.util.UUID;
 @Repository
 public interface MessageElasticsearchRepository extends ElasticsearchRepository<MessageDocument, String> {
 
-    Optional<MessageDocument> findBySessionId(UUID sessionId);
+    Optional<MessageDocument> findBySessionId(String sessionId);
 
 }

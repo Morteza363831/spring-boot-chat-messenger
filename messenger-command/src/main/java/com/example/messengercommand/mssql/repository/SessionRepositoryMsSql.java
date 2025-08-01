@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface SessionRepositoryMsSql extends JpaRepository<Session, UUID> {
+public interface SessionRepositoryMsSql extends JpaRepository<Session, String> {
 
     @Transactional(rollbackOn = Exception.class)
     @Query("""
@@ -19,5 +19,5 @@ public interface SessionRepositoryMsSql extends JpaRepository<Session, UUID> {
         WHERE (s.user1.id = :user1Id AND s.user2.id = :user2Id)
            OR (s.user1.id = :user2Id AND s.user2.id = :user1Id)
     """)
-    Optional<Session> findExistingSession(@Param("user1Id") UUID user1Id, @Param("user2Id") UUID user2Id);
+    Optional<Session> findExistingSession(@Param("user1Id") String user1Id, @Param("user2Id") String user2Id);
 }

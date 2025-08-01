@@ -14,13 +14,11 @@ import java.util.UUID;
 @Setter
 @Entity
 @Immutable
-@Table(name = "messages", uniqueConstraints = {
-        @UniqueConstraint(name = "session_id", columnNames = {"session_id"})
-})
+@Table(name = "messages")
 public class Message {
     @Id
-    @Size(max = 16)
-    @Column(name = "id", nullable = false, length = 16)
+    @Size(max = 36)
+    @Column(name = "id", nullable = false, length = 36)
     private String id;
 
     @NotNull
@@ -30,7 +28,7 @@ public class Message {
 
     @NotNull
     @Column(name = "session_id", nullable = false)
-    private UUID sessionId;
+    private String sessionId;
 
     @Size(max = 255)
     @NotNull

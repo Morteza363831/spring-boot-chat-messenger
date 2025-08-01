@@ -20,5 +20,6 @@ import java.util.UUID;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SessionDeleteDto implements Serializable {
     @NotNull(message = "Session Id cannot be null")
-    private UUID id;
+    private String user1;
+    private String user2;
 }

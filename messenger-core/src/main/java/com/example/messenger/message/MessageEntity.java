@@ -11,12 +11,10 @@ import java.util.UUID;
 @Table(name = "messages")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 public class MessageEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(nullable = false)
     private UUID id;
 
@@ -29,5 +27,11 @@ public class MessageEntity {
     private UUID sessionId; // Store only session ID
 
     @Column(nullable = false, updatable = false, unique = true)
-    private String encryptedAESKey;
+    private String encryptedAesKey;
+
+    public MessageEntity() {
+        if (id == null) {
+            id = UUID.randomUUID();
+        }
+    }
 }
