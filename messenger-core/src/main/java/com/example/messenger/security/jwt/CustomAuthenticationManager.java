@@ -1,8 +1,8 @@
-package com.example.messenger.jwt;
+package com.example.messenger.security.jwt;
 
 import com.example.messenger.exceptions.AuthenticationFailureException;
-import com.example.messenger.user.UserQueryClient;
-import com.example.messenger.user.UserEntity;
+import com.example.messenger.user.query.UserQueryClient;
+import com.example.messenger.user.model.UserEntity;
 import com.example.messenger.utility.EncryptionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +24,6 @@ import java.util.Optional;
 @Slf4j
 public class CustomAuthenticationManager implements AuthenticationManager {
 
-    // Deprecated
-    /*@Autowired
-    private UserRepository userRepository;*/
     @Autowired
     private UserQueryClient userQueryClient;
 
@@ -37,15 +34,13 @@ public class CustomAuthenticationManager implements AuthenticationManager {
     public Authentication authenticate(final Authentication authentication) throws AuthenticationException {
 
         final Optional<UserEntity> userEntityOptional = userQueryClient.getUser(authentication.getName());
-        // Deprecated
-        // final Optional<UserEntity> userEntityOptional = userRepository.findByUsername(authentication.getName());
 
         if (userEntityOptional.isPresent()) {
             UserEntity userEntity = userEntityOptional.get();
 
             if (passwordEncoder.matches(authentication.getCredentials().toString(), userEntity.getPassword())) {
                 final List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
-                final List<String> userRoles = Arrays.stream(EncryptionUtil.decrypt(userEntity.getAuthorities()).split(",")).toList();
+                final List<String> userRoles = Arrays.stream(userEntity.getAuthorities().split(",")).toList();
                 userRoles.forEach(userRole -> grantedAuthorities.add(new SimpleGrantedAuthority(userRole)));
 
                 return new UsernamePasswordAuthenticationToken(userEntity.getUsername(), authentication.getCredentials(), grantedAuthorities);

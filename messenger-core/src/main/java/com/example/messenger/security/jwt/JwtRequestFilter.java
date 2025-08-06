@@ -1,4 +1,4 @@
-package com.example.messenger.jwt;
+package com.example.messenger.security.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

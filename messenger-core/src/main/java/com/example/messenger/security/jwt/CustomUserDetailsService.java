@@ -1,8 +1,8 @@
-package com.example.messenger.jwt;
+package com.example.messenger.security.jwt;
 
 import com.example.messenger.exceptions.AuthenticationFailureException;
-import com.example.messenger.user.UserQueryClient;
-import com.example.messenger.user.UserEntity;
+import com.example.messenger.user.query.UserQueryClient;
+import com.example.messenger.user.model.UserEntity;
 import com.example.messenger.utility.EncryptionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +22,6 @@ import java.util.Optional;
 @Slf4j
 public class CustomUserDetailsService implements UserDetailsService {
 
-    // Deprecated
-    /*@Autowired
-    private UserRepository userRepository;*/
     @Autowired
     private UserQueryClient userQueryClient;
 
@@ -35,8 +32,6 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
 
         final Optional<UserEntity> optionalUserEntity = userQueryClient.getUser(username);
-        // Deprecated
-        // final Optional<UserEntity> optionalUserEntity = userRepository.findByUsername(username);
 
         User.UserBuilder userBuilder = null;
 
@@ -47,8 +42,8 @@ public class CustomUserDetailsService implements UserDetailsService {
                     .password(passwordEncoder.encode(userEntity.getPassword()));
 
             final List<String> authorities = new ArrayList<>();
-            Optional.ofNullable(userEntity.getAuthorities()).ifPresent(authority -> {
-                authorities.addAll( Arrays.stream(EncryptionUtil.decrypt(authority).split(",")).toList());
+            Optional.ofNullable(userEntity.getAuthorities()).ifPresent(authorityList -> {
+                authorities.addAll( Arrays.stream(authorityList.split(",")).toList());
             });
             final String[] result = new String[authorities.size()];
             authorities.forEach(authority -> {

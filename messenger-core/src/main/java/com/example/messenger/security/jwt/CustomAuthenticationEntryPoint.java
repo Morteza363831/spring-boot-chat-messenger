@@ -1,6 +1,5 @@
-package com.example.messenger.jwt;
+package com.example.messenger.security.jwt;
 
-import com.example.messenger.exceptions.handler.GlobalExceptionHandler;
 import com.example.messenger.structure.ResponseResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
