@@ -1,5 +1,6 @@
 package com.example.messengerquery.model;
 
+import com.example.messengerquery.util.EncryptionUtil;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -53,5 +54,10 @@ public class User {
     @NotNull
     @Column(name = "password", nullable = false)
     private String password;
+
+    @PostLoad
+    private void postLoad() {
+        authorities = EncryptionUtil.decrypt(authorities);
+    }
 
 }

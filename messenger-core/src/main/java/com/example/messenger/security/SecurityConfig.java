@@ -1,8 +1,8 @@
 package com.example.messenger.security;
 
-import com.example.messenger.jwt.CustomAuthenticationEntryPoint;
-import com.example.messenger.jwt.CustomAuthenticationManager;
-import com.example.messenger.jwt.JwtRequestFilter;
+import com.example.messenger.security.jwt.CustomAuthenticationEntryPoint;
+import com.example.messenger.security.jwt.CustomAuthenticationManager;
+import com.example.messenger.security.jwt.JwtRequestFilter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
