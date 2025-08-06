@@ -3,6 +3,8 @@ package com.example.messenger.message;
 
 import com.example.messenger.exceptions.*;
 import com.example.messenger.kafka.CommandProducer;
+import com.example.messenger.message.model.*;
+import com.example.messenger.message.query.MessageQueryClient;
 import com.example.messenger.utility.AESGCMUtil;
 import com.example.messengerutilities.utility.DataTypes;
 import com.example.messengerutilities.utility.RequestTypes;
