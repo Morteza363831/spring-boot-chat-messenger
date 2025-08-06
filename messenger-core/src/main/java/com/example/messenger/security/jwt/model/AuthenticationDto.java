@@ -1,4 +1,4 @@
-package com.example.messenger.user;
+package com.example.messenger.security.jwt.model;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;

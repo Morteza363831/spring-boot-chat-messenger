@@ -1,16 +1,18 @@
-package com.example.messenger.user;
+package com.example.messenger.security.jwt.controller;
 
 import com.example.messenger.exceptions.AuthenticationFailureException;
 import com.example.messenger.exceptions.CustomEntityNotFoundException;
 import com.example.messenger.exceptions.CustomValidationException;
-import com.example.messenger.jwt.CustomAuthenticationManager;
-import com.example.messenger.jwt.CustomUserDetailsService;
-import com.example.messenger.jwt.JwtTokenUtil;
+import com.example.messenger.security.jwt.CustomAuthenticationManager;
+import com.example.messenger.security.jwt.CustomUserDetailsService;
+import com.example.messenger.security.jwt.JwtTokenUtil;
+import com.example.messenger.security.jwt.model.AuthenticationDto;
 import com.example.messenger.structure.ResponseResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,22 +29,16 @@ import java.util.List;
 
 @Slf4j
 @Tag(name = "Authentication", description = "Handles user authentication and JWT token generation")
+@SecurityRequirements() // No authentication required
 @RestController
 @RequestMapping("/api/v1/auth")
-@SecurityRequirements() // No authentication required
+@RequiredArgsConstructor
 public class LoginController {
 
+    // services
     private final CustomAuthenticationManager authenticationManager;
     private final CustomUserDetailsService userDetailsService;
     private final JwtTokenUtil jwtTokenUtil;
-
-    public LoginController(CustomAuthenticationManager authenticationManager,
-                           CustomUserDetailsService userDetailsService,
-                           JwtTokenUtil jwtTokenUtil) {
-        this.authenticationManager = authenticationManager;
-        this.userDetailsService = userDetailsService;
-        this.jwtTokenUtil = jwtTokenUtil;
-    }
 
     // public methods
 
@@ -75,6 +71,8 @@ public class LoginController {
             throw new CustomValidationException(List.of(e.getMessage()));
         }
     }
+
+    // utils
 
     private void authenticate(final String username, final String password) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
