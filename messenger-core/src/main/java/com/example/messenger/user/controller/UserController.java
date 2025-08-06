@@ -1,13 +1,19 @@
-package com.example.messenger.user;
+package com.example.messenger.user.controller;
 
 import com.example.messenger.exceptions.*;
 import com.example.messenger.structure.ResponseResult;
+import com.example.messenger.user.model.UserCreateDto;
+import com.example.messenger.user.model.UserDeleteDto;
+import com.example.messenger.user.model.UserDto;
+import com.example.messenger.user.model.UserUpdateDto;
+import com.example.messenger.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.constraints.Pattern;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,22 +24,21 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * User controller will handle users management endpoints
+ * User controller will handle user requests .
  * Create user endpoint does not need any authorize .
- * Other endpoints needs authorize before starting of process (authorize with username or ROLE_ADMIN)
+ * Other endpoints need authorize before starting a process (authorize with username or ROLE_ADMIN)
  */
 
 @Tag(name = "User Management", description = "Operations related to user management")
-@RestController
-@RequestMapping("/api/v1/users")
 @Slf4j
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/v1/users")
 public class UserController {
 
+    // services
     private final UserService userService;
 
-    public UserController(final UserService userService) {
-        this.userService = userService;
-    }
 
     @Operation(summary = "Create a new user", description = "Registers a new user in the system")
     @ApiResponse(responseCode = "201", description = "User successfully created")
@@ -42,7 +47,7 @@ public class UserController {
     @ApiResponse(responseCode = "500", description = "Internal error")
     @SecurityRequirements() // Excludes security for this endpoint
     @PostMapping("/register")
-    public ResponseEntity<ResponseResult<UserDto>> registerUser(@RequestBody final UserCreateDto user) {
+    public ResponseEntity<ResponseResult<UserDto>> registerUser(@RequestBody UserCreateDto user) {
 
         final Optional<UserDto> userEntityDtoOptional = Optional.ofNullable(userService.save(user));
         if (userEntityDtoOptional.isPresent()) {
@@ -70,7 +75,7 @@ public class UserController {
     public ResponseEntity<?> updateUser(
             @PathVariable @Pattern(regexp = "^[a-zA-Z0-9_-]{3,16}$") String username,
             @RequestBody UserUpdateDto user) {
-        userService.updateUser(username, user);
+        userService.update(username, user);
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
                 .body(new ResponseResult<>(
@@ -93,7 +98,7 @@ public class UserController {
                         "Success",
                         HttpStatus.OK.value(),
                         "User founded successfully",
-                        userService.getAllUsers(),
+                        userService.getUsers(),
                         "/api/v1/users/get"
                 ));
     }
@@ -105,14 +110,14 @@ public class UserController {
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("isMatch(#username)|| hasAccess('ROLE_ADMIN')")
     @GetMapping("/{username}")
-    public ResponseEntity<?> getUser(@PathVariable final String username) {
+    public ResponseEntity<?> getUser(@PathVariable String username) {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(new ResponseResult<>(
                         "Success",
                         HttpStatus.OK.value(),
                         "User founded successfully",
-                        userService.getUserByUsername(username),
+                        userService.getUser(username),
                         "/api/v1/users/get"
                 ));
     }
@@ -124,8 +129,8 @@ public class UserController {
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("isMatch(#userDeleteDto.getUsername()) || hasAccess('ROLE_ADMIN')")
     @DeleteMapping("/delete")
-    public ResponseEntity<?> deleteUser(@RequestBody final UserDeleteDto userDeleteDto) {
-        userService.deleteUserById(userDeleteDto);
+    public ResponseEntity<?> deleteUser(@RequestBody UserDeleteDto userDeleteDto) {
+        userService.delete(userDeleteDto);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(new ResponseResult<>(
