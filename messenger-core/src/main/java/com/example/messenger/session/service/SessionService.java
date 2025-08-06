@@ -1,5 +1,9 @@
 package com.example.messenger.session;
 
+import com.example.messenger.session.model.SessionCreateDto;
+import com.example.messenger.session.model.SessionDeleteDto;
+import com.example.messenger.session.model.SessionDto;
+
 import java.util.UUID;
 
 public interface SessionService {
