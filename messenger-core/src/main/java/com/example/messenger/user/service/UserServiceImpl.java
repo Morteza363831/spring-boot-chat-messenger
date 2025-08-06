@@ -1,10 +1,13 @@
-package com.example.messenger.user;
+package com.example.messenger.user.service;
 
 
 import com.example.messenger.exceptions.CustomValidationException;
 import com.example.messenger.exceptions.EntityAlreadyExistException;
 import com.example.messenger.exceptions.CustomEntityNotFoundException;
 import com.example.messenger.kafka.CommandProducer;
+import com.example.messenger.user.model.UserUpdateDto;
+import com.example.messenger.user.model.*;
+import com.example.messenger.user.query.UserQueryClient;
 import com.example.messengerutilities.utility.DataTypes;
 import com.example.messengerutilities.utility.RequestTypes;
 import com.example.messengerutilities.utility.TopicNames;

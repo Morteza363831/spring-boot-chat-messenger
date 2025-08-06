@@ -1,5 +1,7 @@
 package com.example.messenger.user;
 
+import com.example.messenger.user.model.*;
+
 import java.util.List;
 import java.util.UUID;
 

@@ -1,19 +1,19 @@
-package com.example.messenger.user;
+package com.example.messenger.user.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.Serializable;
 
 /**
  * DTO for {@link UserEntity}
  */
-@Data
+@Setter
+@Getter
+@ToString
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -21,7 +21,7 @@ public class UserCreateDto implements Serializable {
     @Size(min = 2, max = 25, message = "Username size must be between 2 and 25")
     @NotBlank(message = "Username cannot be null")
     private String username;
-    @Email(message = "Invalid email type")
+    @Email(message = "Email is not valid", regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$")
     @NotBlank(message = "Email cannot be null")
     private String email;
     private String firstName;
