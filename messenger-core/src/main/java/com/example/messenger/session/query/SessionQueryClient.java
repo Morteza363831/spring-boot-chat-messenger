@@ -1,5 +1,6 @@
-package com.example.messenger.session;
+package com.example.messenger.session.query;
 
+import com.example.messenger.session.model.SessionEntity;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -11,6 +12,7 @@ import java.util.UUID;
         name = "SessionClient",
         url = "http://localhost:8051/api/v1/query/session")
 public interface SessionQueryClient {
+
     @GetMapping
     Optional<SessionEntity> getSession(@RequestParam UUID user1, @RequestParam UUID user2);
 }
