@@ -1,4 +1,5 @@
-package com.example.messenger.message;
+package com.example.messenger.message.service;
+
 import com.example.messenger.message.model.MessageContent;
 import com.example.messenger.message.model.MessageEntity;
 
@@ -7,13 +8,13 @@ import java.util.UUID;
 
 public interface MessageService {
 
-    void saveMessage(final UUID sessionId,final MessageContent messageContent);
+    void saveMessage(UUID sessionId, MessageContent messageContent);
 
-    void saveMessageEntity(final UUID sessionId);
+    void saveEntity(UUID sessionId);
 
-    MessageContent findById(Long id);
+    MessageContent getEntity(Long id);
 
-    List<MessageContent> findAll(final UUID sessionId);
+    List<MessageContent> getMessages(UUID sessionId);
 
     MessageEntity makeMessageEntityObject(UUID sessionId);
 }

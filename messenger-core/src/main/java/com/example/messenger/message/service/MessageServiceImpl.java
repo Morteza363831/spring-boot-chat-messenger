@@ -1,4 +1,4 @@
-package com.example.messenger.message;
+package com.example.messenger.message.service;
 
 
 import com.example.messenger.exceptions.*;
@@ -30,20 +30,18 @@ import java.util.*;
 @RequiredArgsConstructor
 public class MessageServiceImpl implements MessageService {
 
-    // inject default beans
+    // tools
     private final Validator validator;
     private final ObjectMapper mapper;
 
-    // inject others
-    private final MessageRepository messageRepository;
+    // services
     private final CommandProducer commandProducer;
     private final MessageQueryClient messageQueryClient;
 
-    // public methods
 
     @Transactional(rollbackOn = Exception.class)
     @Override
-    public void saveMessage(final UUID sessionId,final MessageContent messageContent) {
+    public void saveMessage(UUID sessionId, MessageContent messageContent) {
 
         validate(messageContent);
         // create new message entity if there is no tuple in database
@@ -52,49 +50,36 @@ public class MessageServiceImpl implements MessageService {
 
     @Transactional(rollbackOn = Exception.class)
     @Override
-    public void saveMessageEntity(final UUID sessionId) {
-        createMessageEntity(sessionId);
+    public void saveEntity(UUID sessionId) {
+
+        messageQueryClient.getMessageBySessionId(sessionId)
+                .ifPresentOrElse(foundedMessageEntity -> {
+                    throw new EntityAlreadyExistException(foundedMessageEntity.getId().toString());
+                }, () -> {
+                    MessageEntity messageEntity = makeMessageEntityObject(sessionId);
+                    commandProducer.sendWriteEvent(TopicNames.MESSAGE_WRITE_TOPIC, RequestTypes.SAVE, DataTypes.MESSAGE, messageEntity);
+                });
     }
 
-    // For now this functionality is not accessible
+    // Not implemented
     @Override
-    public MessageContent findById(Long id) {
+    public MessageContent getEntity(Long id) {
         return null;
     }
 
     @Transactional(rollbackOn = Exception.class)
     @Override
-    public List<MessageContent> findAll(final UUID sessionId) {
+    public List<MessageContent> getMessages(UUID sessionId) {
 
-        Optional<MessageEntity> messageEntityOptional = messageQueryClient.getMessageBySessionId(sessionId);
-
-        MessageDto messageDto = null;
-        if (messageEntityOptional.isPresent()) {
-            messageDto = MessageMapper.INSTANCE.toDto(messageEntityOptional.get());
-        }
-
-        if (messageEntityOptional.isEmpty()) {
-            saveMessageEntity(sessionId);
-        }
-
-
-        // Deprecated
-        /*// find message entity
-        Optional<MessageEntity> messageEntityOptional = messageRepository.findBySessionId(sessionId);
-
-        MessageDto messageDto = null;
-        if (messageEntityOptional.isPresent()) {
-            messageDto = MessageMapper.INSTANCE.toDto(messageEntityOptional.get());
-        }
-        // if message entity is null create one
-        if (messageEntityOptional.isEmpty()) {
-            messageDto = saveMessageEntity(sessionId);
-        }*/
+        MessageDto messageDto =messageQueryClient
+                .getMessageBySessionId(sessionId)
+                .map(MessageMapper.INSTANCE::toDto)
+                .orElseThrow(() -> new CustomEntityNotFoundException(sessionId.toString()));
 
         // then read message contents
         MessageContentList messageContentList;
         try {
-            messageContentList = mapper.readValue(decryption(messageDto.getContent(), decode(messageDto.getEncryptedAesKey())), MessageContentList.class);
+            messageContentList = mapper.readValue(decryption(messageDto.content(), decode(messageDto.encryptedAesKey())), MessageContentList.class);
         } catch (JsonProcessingException e) {
             throw new JsonProcessingCustomException();
         }
@@ -117,45 +102,8 @@ public class MessageServiceImpl implements MessageService {
         }
     }
 
+
     // private methods
-
-
-    private void createMessageEntity(final UUID sessionId) {
-
-        messageQueryClient.getMessageBySessionId(sessionId)
-                .ifPresentOrElse(foundedMessageEntity -> {
-                    throw new EntityAlreadyExistException(foundedMessageEntity.getId().toString());
-                }, () -> {
-                    MessageEntity messageEntity = makeMessageEntityObject(sessionId);
-                    commandProducer.sendWriteEvent(TopicNames.MESSAGE_WRITE_TOPIC, RequestTypes.SAVE, DataTypes.MESSAGE, messageEntity);
-                });
-
-        // Deprecated
-        /*// find message entity by session
-        Optional<MessageEntity> messageEntityOptional = messageRepository.findBySessionId(sessionId);
-        // if message entity is null create one
-        if (messageEntityOptional.isPresent()) {
-            // persist message entity
-            throw new EntityAlreadyExistException(messageEntityOptional.get().getId().toString());
-        }
-
-        // persist message entity
-        final MessageEntity messageEntity = new MessageEntity();
-        messageEntity.setSessionId(sessionId);
-        try {
-            final SecretKey secretKey = AESGCMUtil.generateAESKey();
-            messageEntity.setContent(encryption(mapper.writeValueAsString(new MessageContentList()), secretKey));
-            messageEntity.setEncryptedAESKey(encode(secretKey));
-        } catch (JsonProcessingException e) {
-            throw new JsonProcessingCustomException();
-        } catch (Exception e) {
-            throw new KeyGenerationFailureException();
-        }*/
-/*
-        return messageQueryClient.getMessageBySessionId(sessionId)
-                .map(MessageMapper.INSTANCE::toDto)
-                .orElseThrow(() -> new CustomEntityNotFoundException("Message not found"));*/
-    }
 
     private void addMessageContentAndUpdateMessageEntity(UUID sessionId, MessageContent messageContent) {
 
@@ -167,7 +115,7 @@ public class MessageServiceImpl implements MessageService {
                         final String decryptedContent = decryption(foundedMessageEntity.getContent(), secretKey);
 
                         // Parse JSON
-                        final MessageContentList messageContentList = checkNull(mapper.readValue(decryptedContent, MessageContentList.class));
+                        final MessageContentList messageContentList = checkMessageContentListNullChance(mapper.readValue(decryptedContent, MessageContentList.class));
                         messageContentList.getMessageContentList().add(messageContent);
 
                         // Encrypt updated content
@@ -181,34 +129,12 @@ public class MessageServiceImpl implements MessageService {
                 }, () -> {
                     throw new CustomEntityNotFoundException("Message not found for session : " + sessionId);
                 });
-
-        // Deprecated
-        /*Optional<MessageEntity> messageEntityOptional = messageRepository.findBySessionId(sessionId);
-        if (messageEntityOptional.isEmpty()) {
-            throw new CustomEntityNotFoundException("Message entity not found for session: " + sessionId);
-        }
-
-        final MessageEntity messageEntity = messageEntityOptional.get();
-        try {
-            // Decrypt the existing message content
-            final SecretKey secretKey = decode(messageEntity.getEncryptedAESKey());
-            final String decryptedContent = decryption(messageEntity.getContent(), secretKey);
-
-            // Parse JSON
-            final MessageContentList messageContentList = checkNull(mapper.readValue(decryptedContent, MessageContentList.class));
-            messageContentList.getMessageContentList().add(messageContent);
-
-            // Encrypt updated content
-            final String encryptedContent = encryption(mapper.writeValueAsString(messageContentList), secretKey);
-            messageEntity.setContent(encryptedContent);
-
-            messageRepository.save(messageEntity);
-        } catch (JsonProcessingException e) {
-            throw new JsonProcessingCustomException();
-        }*/
     }
 
-    private MessageContentList checkNull(final MessageContentList messageContentList) {
+
+    // utils
+
+    private MessageContentList checkMessageContentListNullChance(MessageContentList messageContentList) {
         // if the list is empty create one
         if (messageContentList.getMessageContentList() == null) {
             messageContentList.setMessageContentList(new ArrayList<>());
@@ -216,15 +142,6 @@ public class MessageServiceImpl implements MessageService {
         }
         return messageContentList;
     }
-
-    private void validate(final Object dto) {
-        final List<String> violations = new ArrayList<>();
-        validator.validate(dto).forEach(field -> violations.add(field.getMessage()));
-        if (!violations.isEmpty()) {
-            throw new CustomValidationException(violations);
-        }
-    }
-
 
     private String encryption(final String content, final SecretKey secretKey) {
         try {
@@ -249,6 +166,15 @@ public class MessageServiceImpl implements MessageService {
     private SecretKey decode(String encodedKey) {
         byte[] decodedBytes = Base64.getDecoder().decode(encodedKey);
         return new SecretKeySpec(decodedBytes, "AES");
+    }
+
+
+    private void validate(final Object dto) {
+        final List<String> violations = new ArrayList<>();
+        validator.validate(dto).forEach(field -> violations.add(field.getMessage()));
+        if (!violations.isEmpty()) {
+            throw new CustomValidationException(violations);
+        }
     }
 
 }
