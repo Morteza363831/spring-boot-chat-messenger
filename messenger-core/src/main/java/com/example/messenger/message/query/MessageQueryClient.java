@@ -1,5 +1,6 @@
-package com.example.messenger.message;
+package com.example.messenger.message.query;
 
+import com.example.messenger.message.model.MessageEntity;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
