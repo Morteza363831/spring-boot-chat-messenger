@@ -16,7 +16,6 @@ public interface UserMapper {
     UserEntity toEntity(UserCreateDto userCreateDto);
 
     // entity to dto
-    @Mapping(target = "authorities", expression = "java(com.example.messenger.utility.EncryptionUtil.decrypt(userEntity.getAuthorities()))")
     UserDto toUserDto(UserEntity userEntity);
 
     // partial updates

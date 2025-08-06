@@ -131,7 +131,7 @@ public class UserServiceImpl implements UserService {
         }
         else {
             // Delete authority
-            List<String> authorities = Arrays.asList(authority.split(","));
+            List<String> authorities = new ArrayList<>(Arrays.stream(userEntity.getAuthorities().split(",")).toList());
             authorities.removeIf(item -> item.equals(authority));
             updatedAuthorities = String.join(",", authorities);
         }

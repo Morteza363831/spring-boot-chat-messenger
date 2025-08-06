@@ -5,7 +5,7 @@ import com.example.messenger.exceptions.CustomEntityNotFoundException;
 import com.example.messenger.exceptions.CustomValidationException;
 import com.example.messenger.exceptions.EntityAlreadyExistException;
 import com.example.messenger.kafka.CommandProducer;
-import com.example.messenger.message.MessageService;
+import com.example.messenger.message.service.MessageService;
 import com.example.messenger.session.model.*;
 import com.example.messenger.session.query.SessionQueryClient;
 import com.example.messenger.user.model.UserEntity;
@@ -34,6 +34,7 @@ public class SessionServiceImpl implements SessionService {
 
     // tools
     private final Validator validator;
+    private final SessionMapper sessionMapper;
 
     // services
     private final SessionQueryClient sessionQueryClient;
@@ -52,7 +53,7 @@ public class SessionServiceImpl implements SessionService {
         final UserEntity secondUser = userService.getUserEntity(user2);
 
         return sessionQueryClient.getSession(firstUser.getId(), secondUser.getId())
-                .map(SessionMapper.INSTANCE::sessionEntityToSessionDto)
+                .map(sessionMapper::sessionEntityToSessionDto)
                 .orElseGet(() -> save(new SessionCreateDto(user1, user2)));
     }
 
@@ -80,7 +81,7 @@ public class SessionServiceImpl implements SessionService {
                     SessionEntity sessionEntity = SessionEntity.createSession(firstUser, secondUser);
 
                     commandProducer.sendWriteEvent(TopicNames.SESSION_WRITE_TOPIC, RequestTypes.SAVE, DataTypes.SESSION, sessionEntity);
-                    messageService.saveMessageEntity(sessionEntity.getId());
+                    messageService.saveEntity(sessionEntity.getId());
                     // produce event on topic (command request)
                     // Securely update user authorities inside the same transaction
                     userService.updateUserAuthorities(firstUser, sessionEntity.getId().toString(), AuthorityUpdateType.UPDATE);
@@ -88,7 +89,7 @@ public class SessionServiceImpl implements SessionService {
                 });
 
         return sessionQueryClient.getSession(firstUser.getId(), secondUser.getId())
-                .map(SessionMapper.INSTANCE::sessionEntityToSessionDto)
+                .map(sessionMapper::sessionEntityToSessionDto)
                 .orElseThrow(() -> new EntityNotFoundException(firstUser.getId() + " and " + secondUser.getId()));
     }
 

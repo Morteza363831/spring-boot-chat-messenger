@@ -12,6 +12,7 @@ import lombok.*;
 @Getter
 @ToString
 @AllArgsConstructor
+@NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SessionDeleteDto {
     @NotNull(message = "User1 name cannot be null")
