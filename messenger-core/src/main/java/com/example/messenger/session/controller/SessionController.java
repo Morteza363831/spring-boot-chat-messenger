@@ -1,10 +1,15 @@
-package com.example.messenger.session;
+package com.example.messenger.session.controller;
 
+import com.example.messenger.session.model.SessionCreateDto;
+import com.example.messenger.session.model.SessionDeleteDto;
+import com.example.messenger.session.model.SessionDto;
+import com.example.messenger.session.service.SessionService;
 import com.example.messenger.structure.ResponseResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,17 +20,15 @@ import java.util.Map;
 import java.util.Optional;
 
 @Tag(name = "Session Management", description = "Operations related to managing chat sessions")
-@RestController
-@RequestMapping("/api/v1/sessions")
 @SecurityRequirement(name = "bearerAuth")
 @Slf4j
-public class SessionTempController {
+@RestController
+@RequestMapping("/api/v1/sessions")
+@RequiredArgsConstructor
+public class SessionController {
 
     private final SessionService sessionService;
 
-    public SessionTempController(SessionService sessionService) {
-        this.sessionService = sessionService;
-    }
 
     @Operation(summary = "Create a chat session", description = "Creates a new session between two users")
     @ApiResponse(responseCode = "201", description = "Session created successfully")
@@ -70,7 +73,7 @@ public class SessionTempController {
                         "success",
                         HttpStatus.OK.value(),
                         "Session founded successfully",
-                        sessionService.findByUserIds(user1, user2),
+                        sessionService.getSession(user1, user2),
                         "/api/v1/sessions?user1" + user1 + "&user2" + user2
                 ));
     }
@@ -81,7 +84,7 @@ public class SessionTempController {
     @PreAuthorize("isMatch(#sessionDeleteDto.getUser1())|| hasAccess('ROLE_ADMIN')")
     @DeleteMapping("/delete")
     public ResponseEntity<?> deleteSession(@RequestBody SessionDeleteDto sessionDeleteDto) {
-        sessionService.deleteSession(sessionDeleteDto);
+        sessionService.delete(sessionDeleteDto);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(new ResponseResult<Object>(
