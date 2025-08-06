@@ -22,7 +22,8 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 
 /**
- * This class will process on user requests like create, get, update, delete and etc
+ * UserServiceImpl will implement user management logic .
+ * It has functionalities for (save , update , delete , get and get all users)
  * PasswordEncoder will encode password using BCrypt algorithm
  */
 
@@ -31,20 +32,54 @@ import java.util.*;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    // inject default beans
+    // tools
     private final Validator validator;
+    private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
-    // inject created beans
-    // Deprecated
-    // private final UserRepository userRepository;
+    // services (query + command)
     private final CommandProducer commandProducer;
     private final UserQueryClient userQueryClient;
 
 
+    @Override
+    public List<UserDto> getUsers() {
+        final List<UserEntity> users = userQueryClient.getUsers();
+        return users
+                .stream()
+                .map(userMapper::toUserDto)
+                .toList();
+    }
+
+    @Override
+    public UserDto getUser(String username) {
+        return userQueryClient
+                .getUser(username)
+                .map(userMapper::toUserDto)
+                .orElseThrow(() -> new CustomEntityNotFoundException(username));
+    }
+
+    // Not implemented
+    @Override
+    public UserDto getUser(UUID uuid) {
+        return null;
+    }
+
+    @Override
+    public UserEntity getUserEntity(UUID uuid) {
+        return null;
+    }
+
+    @Override
+    public UserEntity getUserEntity(String username) {
+        return userQueryClient
+                .getUser(username)
+                .orElseThrow(() -> new CustomEntityNotFoundException(username)); // may change
+    }
+
     @Transactional(rollbackOn = Exception.class)
     @Override
-    public UserDto save(final UserCreateDto userCreateDto) {
+    public UserDto save(UserCreateDto userCreateDto) {
 
         validate(userCreateDto);
 
@@ -57,23 +92,18 @@ public class UserServiceImpl implements UserService {
                     // produce event on topic (command request)
                     commandProducer.sendWriteEvent(TopicNames.USER_WRITE_TOPIC,
                             RequestTypes.SAVE,
-                            DataTypes.USER, UserMapper.INSTANCE.toEntity(userCreateDto));
+                            DataTypes.USER, userMapper.toEntity(userCreateDto));
                 });
+
         // retrieve user from query service
         return userQueryClient.getUser(userCreateDto.getUsername())
-                .map(UserMapper.INSTANCE::toUserDto)
+                .map(userMapper::toUserDto)
                 .orElseThrow(() -> new EntityNotFoundException(userCreateDto.getUsername()));
-    }
-
-    // For now this method is not available
-    @Override
-    public UserDto getUserById(final UUID uuid) {
-        return null;
     }
 
     @Transactional(rollbackOn = Exception.class)
     @Override
-    public void updateUser(final String username, final UserUpdateDto userUpdateDto) {
+    public void update(String username, UserUpdateDto userUpdateDto) {
 
         validate(userUpdateDto);
 
@@ -82,26 +112,16 @@ public class UserServiceImpl implements UserService {
                     // produce event on topic (command request)
                     commandProducer.sendWriteEvent(TopicNames.USER_WRITE_TOPIC,
                             RequestTypes.UPDATE,
-                            DataTypes.USER, UserMapper.INSTANCE.partialUpdate(userUpdateDto, foundedUser));
+                            DataTypes.USER, userMapper.partialUpdate(userUpdateDto, foundedUser));
                 }, () -> {
                     throw new CustomEntityNotFoundException(username);
                 });
-        // Deprecated
-        /*userRepository
-                .findByUsername(username)
-                .ifPresentOrElse(foundedUser -> {
-                    // userRepository.save(UserMapper.INSTANCE.partialUpdate(userUpdateDto, foundedUser)); // Deprecated
-                    // produce event on topic (command request)
-                    commandProducer.sendWriteEvent(TopicNames.USER_WRITE_TOPIC, RequestTypes.UPDATE, DataTypes.USER, foundedUser);
-                }, () -> {
-                    throw new CustomEntityNotFoundException(username);
-                });*/
     }
 
 
     @Transactional(rollbackOn = Exception.class)
     @Override
-    public void deleteUserById(UserDeleteDto userDeleteDto) {
+    public void delete(UserDeleteDto userDeleteDto) {
 
         validate(userDeleteDto);
 
@@ -110,39 +130,10 @@ public class UserServiceImpl implements UserService {
                     // produce event on topic (command request)
                     commandProducer.sendWriteEvent(TopicNames.USER_WRITE_TOPIC, RequestTypes.DELETE, DataTypes.USER, foundedUser);
                 });
-        // Deprecated
-        /*userRepository
-                .findByUsername(userDeleteDto.getUsername())
-                .ifPresentOrElse(foundedUser -> {
-                    userRepository.delete(foundedUser); // Deprecated
-                    // produce event on topic (command request)
-                    commandProducer.sendWriteEvent(TopicNames.USER_WRITE_TOPIC, RequestTypes.DELETE, DataTypes.USER, foundedUser);
-                }
-                , () -> {
-                    throw new CustomEntityNotFoundException(userDeleteDto.getUsername());
-                });*/
     }
 
-    @Override
-    public List<UserDto> getAllUsers() {
-        // Deprecated
-        // final List<UserEntity> users = userRepository.findAll();
-        final List<UserEntity> users = userQueryClient.getUsers();
-        return UserMapper.INSTANCE.userEntityListToUserDtoList(users); // Return an empty list if no users found
-    }
 
-    @Override
-    public UserDto getUserByUsername(final String username) {
-        return userQueryClient.getUser(username)
-                .map(UserMapper.INSTANCE::toUserDto)
-                .orElseThrow(() -> new CustomEntityNotFoundException(username));
-
-        // Deprecated
-        /*return userRepository.findByUsername(username)
-                .map(UserMapper.INSTANCE::toUserDto)
-                .orElseThrow(() -> new CustomEntityNotFoundException(username));*/
-    }
-
+    // utils
 
     private void validate(Object userCreateDto) {
         final List<String> violations = new ArrayList<>();

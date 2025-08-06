@@ -1,4 +1,4 @@
-package com.example.messenger.user;
+package com.example.messenger.user.service;
 
 import com.example.messenger.user.model.*;
 
@@ -8,15 +8,15 @@ import java.util.UUID;
 public interface UserService {
 
 
-    UserDto save(final UserCreateDto userCreateDto);
+    List<UserDto> getUsers();
+    UserDto getUser(String username);
+    UserDto getUser(UUID uuid);
 
-    void updateUser(final String username, final UserUpdateDto userUpdateDto);
+    UserEntity getUserEntity(UUID uuid);
+    UserEntity getUserEntity(String username);
 
-    UserDto getUserById(final UUID uuid);
 
-    void deleteUserById(final UserDeleteDto userDeleteDto);
-
-    List<UserDto> getAllUsers();
-
-    UserDto getUserByUsername(final String username);
+    UserDto save(UserCreateDto userCreateDto);
+    void update(String username,UserUpdateDto userUpdateDto);
+    void delete(UserDeleteDto userDeleteDto);
 }
