@@ -8,6 +8,7 @@ import com.example.messenger.kafka.CommandProducer;
 import com.example.messenger.user.model.UserUpdateDto;
 import com.example.messenger.user.model.*;
 import com.example.messenger.user.query.UserQueryClient;
+import com.example.messenger.utility.AuthorityUpdateType;
 import com.example.messengerutilities.utility.DataTypes;
 import com.example.messengerutilities.utility.RequestTypes;
 import com.example.messengerutilities.utility.TopicNames;
@@ -118,6 +119,27 @@ public class UserServiceImpl implements UserService {
                 });
     }
 
+    @Transactional(rollbackOn = Exception.class)
+    @Override
+    public void updateUserAuthorities(UserEntity userEntity, String authority, AuthorityUpdateType type) {
+        final UserUpdateDto userUpdateDto = userMapper.userEntityToUpdateDto(userEntity);
+
+        String updatedAuthorities;
+        if (AuthorityUpdateType.UPDATE.equals(type)) {
+            // add authority
+            updatedAuthorities = userEntity.getAuthorities() + "," + authority;
+        }
+        else {
+            // Delete authority
+            List<String> authorities = Arrays.asList(authority.split(","));
+            authorities.removeIf(item -> item.equals(authority));
+            updatedAuthorities = String.join(",", authorities);
+        }
+
+        userUpdateDto.setAuthorities(updatedAuthorities);
+        // produce event on topic (command request)
+        update(userEntity.getUsername(), userUpdateDto);
+    }
 
     @Transactional(rollbackOn = Exception.class)
     @Override

@@ -1,4 +1,4 @@
-package com.example.messenger.session;
+package com.example.messenger.session.service;
 
 import com.example.messenger.session.model.SessionCreateDto;
 import com.example.messenger.session.model.SessionDeleteDto;
@@ -8,11 +8,9 @@ import java.util.UUID;
 
 public interface SessionService {
 
-    SessionDto save(final SessionCreateDto sessionCreateDto);
+    SessionDto getSession(String user1, String user2);
+    SessionDto getSession(UUID sessionId);
 
-    SessionDto findByUserIds(final String user1, final String user2);
-
-    SessionDto findBySessionId(final UUID sessionId);
-
-    void deleteSession(final SessionDeleteDto sessionDeleteDto);
+    SessionDto save(SessionCreateDto sessionCreateDto);
+    void delete(SessionDeleteDto sessionDeleteDto);
 }
