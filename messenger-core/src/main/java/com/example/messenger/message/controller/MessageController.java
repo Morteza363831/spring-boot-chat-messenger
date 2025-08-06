@@ -1,5 +1,7 @@
-package com.example.messenger.message;
+package com.example.messenger.message.controller;
 
+import com.example.messenger.message.service.MessageService;
+import com.example.messenger.message.model.MessageContent;
 import com.example.messenger.structure.ResponseResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -8,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,22 +24,16 @@ import java.util.UUID;
 
 @Slf4j
 @Tag(name = "Message Management", description = "Operations for sending and retrieving messages")
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/api/v1/messages")
-@SecurityRequirement(name = "bearerAuth")
+@RequiredArgsConstructor
 public class MessageController {
 
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final MessageService messageService;
     private final ObjectMapper mapper;
 
-    public MessageController(final SimpMessagingTemplate simpMessagingTemplate,
-                             final MessageService messageService,
-                             final ObjectMapper mapper) {
-        this.simpMessagingTemplate = simpMessagingTemplate;
-        this.messageService = messageService;
-        this.mapper = mapper;
-    }
 
     @Operation(summary = "Send a message", description = "Sends a message between users within a session")
     @ApiResponse(responseCode = "200", description = "Message sent successfully")
@@ -75,7 +72,7 @@ public class MessageController {
                         "success",
                         HttpStatus.OK.value(),
                         "Messages founded successfully",
-                        messageService.findAll(sessionId),
+                        messageService.getMessages(sessionId),
                         "/api/v1/messages/" + sessionId
                 ));
     }
