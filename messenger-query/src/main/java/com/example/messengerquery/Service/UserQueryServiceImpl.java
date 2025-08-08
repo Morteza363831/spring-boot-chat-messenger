@@ -1,6 +1,6 @@
 package com.example.messengerquery.Service;
 
-import com.example.messengerquery.elasticsearch.index.Indexing;
+import com.example.messengerquery.elasticsearch.index.Indexer;
 import com.example.messengerquery.elasticsearch.repository.UserElasticsearchRepository;
 import com.example.messengerquery.mapper.UserMapper;
 import com.example.messengerquery.model.User;
@@ -9,11 +9,9 @@ import com.example.messengerquery.mysql.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,11 +24,11 @@ public class UserQueryServiceImpl implements UserQueryService {
 
     private final UserElasticsearchRepository elasticsearchRepository;
     private final UserRepository userRepository;
-    private final Indexing<User, UserDocument> userIndexing;
+    private final Indexer<User, UserDocument> userIndexer;
 
     @PostConstruct
     private void init() {
-        userIndexing.reindex();
+        userIndexer.reindex();
     }
 
 

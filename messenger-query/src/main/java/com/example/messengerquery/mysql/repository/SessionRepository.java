@@ -25,4 +25,7 @@ public interface SessionRepository extends JpaRepository<Session, String> {
     @EntityGraph(attributePaths = {"user1", "user2"})
     @Query(value = "select s from Session s")
     Page<Session> findAllEntityGraph(Pageable pageable);
+
+    @EntityGraph(attributePaths = {"user1", "user2"})
+    Optional<Session> findById(String id);
 }
