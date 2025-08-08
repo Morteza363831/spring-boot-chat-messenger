@@ -1,6 +1,6 @@
 package com.example.messengerquery.Service;
 
-import com.example.messengerquery.elasticsearch.index.Indexing;
+import com.example.messengerquery.elasticsearch.index.Indexer;
 import com.example.messengerquery.elasticsearch.repository.SessionElasticsearchRepository;
 import com.example.messengerquery.mapper.SessionMapper;
 import com.example.messengerquery.model.Session;
@@ -21,11 +21,11 @@ public class SessionQueryServiceImpl implements SessionQueryService {
 
     private final SessionElasticsearchRepository elasticSearchRepository;
     private final SessionRepository sessionRepository;
-    private final Indexing<Session, SessionDocument> sessionIndexing;
+    private final Indexer<Session, SessionDocument> sessionIndexer;
 
     @PostConstruct
     private void init() {
-        sessionIndexing.reindex();
+        sessionIndexer.reindex();
     }
 
 

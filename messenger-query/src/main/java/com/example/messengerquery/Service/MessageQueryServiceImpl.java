@@ -1,6 +1,6 @@
 package com.example.messengerquery.Service;
 
-import com.example.messengerquery.elasticsearch.index.Indexing;
+import com.example.messengerquery.elasticsearch.index.Indexer;
 import com.example.messengerquery.elasticsearch.repository.MessageElasticsearchRepository;
 import com.example.messengerquery.mapper.MessageMapper;
 import com.example.messengerquery.model.Message;
@@ -21,11 +21,11 @@ public class MessageQueryServiceImpl implements MessageQueryService {
 
     private final MessageElasticsearchRepository elasticsearchRepository;
     private final MessageRepository messageRepository;
-    private final Indexing<Message, MessageDocument> messageIndexing;
+    private final Indexer<Message, MessageDocument> messageIndexer;
 
     @PostConstruct
     private void init() {
-        messageIndexing.reindex();
+        messageIndexer.reindex();
     }
 
 
