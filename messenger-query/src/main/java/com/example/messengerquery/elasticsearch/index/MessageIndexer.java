@@ -5,6 +5,7 @@ import com.example.messengerquery.mapper.MessageMapper;
 import com.example.messengerquery.model.Message;
 import com.example.messengerquery.model.MessageDocument;
 import com.example.messengerquery.mysql.repository.MessageRepository;
+import com.example.messengerutilities.utility.SyncEventType;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +19,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MessageIndexing implements Indexing<Message, MessageDocument> {
+public class MessageIndexer implements Indexer<Message, MessageDocument> {
 
     private final MessageMapper messageMapper;
 
@@ -55,6 +56,34 @@ public class MessageIndexing implements Indexing<Message, MessageDocument> {
             indexMessages(messageDocumentList);
         }
         while (!messages.isLast());
+    }
+
+    @Override
+    public void sync(SyncEventType type, String id) {
+        switch (type) {
+            case INSERT -> insert(id);
+            case UPDATE -> update(id);
+            case DELETE -> delete(id);
+        }
+    }
+
+    private void insert(String id) {
+        databaseRepository.findById(id)
+                .ifPresent(inserted -> {
+                    elasticsearchRepository.save(messageMapper.toMessageDocument(inserted));
+                });
+    }
+
+    private void delete(String id) {
+        elasticsearchRepository.findById(id).ifPresent(elasticsearchRepository::delete);
+    }
+
+    private void update(String id) {
+        databaseRepository.findById(id)
+                .ifPresent(updated -> {
+                    elasticsearchRepository.save(messageMapper.toMessageDocument(updated));
+                });
+
     }
 
     private Page<Message> getAllMessages(int page, int size) {
