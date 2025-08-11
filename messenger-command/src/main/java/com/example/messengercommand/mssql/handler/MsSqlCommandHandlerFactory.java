@@ -1,5 +1,7 @@
 package com.example.messengercommand.mssql.handler;
 
+import com.example.messengercommand.aop.AfterThrowingException;
+import com.example.messengercommand.exceptions.UnknownException;
 import com.example.messengerutilities.utility.DataTypes;
 import com.example.messengercommand.utility.HandlerKey;
 import org.springframework.stereotype.Component;
@@ -7,6 +9,7 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 
 @Component
+@AfterThrowingException
 public class MsSqlCommandHandlerFactory {
 
     private final HashMap<HandlerKey, MsSqlCommandHandler<?>> handlerMap = new HashMap<>();
@@ -33,6 +36,6 @@ public class MsSqlCommandHandlerFactory {
             return new HandlerKey(DataTypes.MESSAGE);
         }
         // TODO
-        throw new RuntimeException("Unknown MsSqlCommandHandler");
+        throw new UnknownException("Unknown MsSqlCommandHandler");
     }
 }
