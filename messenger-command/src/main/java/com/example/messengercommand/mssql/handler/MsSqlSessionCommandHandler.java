@@ -1,15 +1,17 @@
 package com.example.messengercommand.mssql.handler;
 
+import com.example.messengercommand.aop.AfterThrowingException;
+import com.example.messengercommand.exceptions.EntityNotFoundException;
 import com.example.messengerutilities.utility.RequestTypes;
 import com.example.messengercommand.model.Session;
 import com.example.messengercommand.mssql.repository.SessionRepositoryMsSql;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@AfterThrowingException
 public class MsSqlSessionCommandHandler implements MsSqlCommandHandler<Session> {
 
     private final SessionRepositoryMsSql sessionRepositoryMsSql;
@@ -33,12 +35,11 @@ public class MsSqlSessionCommandHandler implements MsSqlCommandHandler<Session> 
     }
 
     private void updateSession(Session session) {
-        Optional<Session> sessionOptional = sessionRepositoryMsSql.findById(session.getId());
-
-        if (sessionOptional.isEmpty()) {
-            // TODO
-            throw new RuntimeException("Session not found");
-        }
-        sessionRepositoryMsSql.save(session);
+        sessionRepositoryMsSql.findById(session.getId())
+                .ifPresentOrElse(existing -> {
+                    sessionRepositoryMsSql.save(session);
+                }, () -> {
+                    throw new EntityNotFoundException(session.getId());
+                });
     }
 }

@@ -1,5 +1,8 @@
 package com.example.messengercommand.mysql.handler;
 
+import com.example.messengercommand.aop.AfterThrowingException;
+import com.example.messengercommand.exceptions.ConvertObjectException;
+import com.example.messengercommand.exceptions.UnExpectedValueException;
 import com.example.messengerutilities.model.KafkaDataStructure;
 import com.example.messengerutilities.utility.DataTypes;
 import com.example.messengerutilities.utility.RequestTypes;
@@ -18,6 +21,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@AfterThrowingException
 public class MySqlCommandDispatcher {
 
     private final ObjectMapper mapper;
@@ -38,7 +42,7 @@ public class MySqlCommandDispatcher {
             case MESSAGE -> mySqlCommandHandlerFactory.<Message>getHandler(DataTypes.MESSAGE)
                     .handle(requestType, convertToMessage(kafkaDataStructure.getData()));
 
-            default -> throw new RuntimeException("Unexpected value: " + dataType);
+            default -> throw new UnExpectedValueException(dataType);
         }
     }
 
@@ -48,8 +52,7 @@ public class MySqlCommandDispatcher {
             return mapper.convertValue(data, User.class);
         }
         catch (Exception e) {
-            log.error("Error converting data to user", e);
-            return null;
+            throw new ConvertObjectException(User.class.getSimpleName());
         }
     }
 
@@ -58,8 +61,7 @@ public class MySqlCommandDispatcher {
             return mapper.convertValue(data, Session.class);
         }
         catch (Exception e) {
-            log.error("Error converting data to session", e);
-            return null;
+            throw new ConvertObjectException(Session.class.getSimpleName());
         }
     }
 
@@ -68,8 +70,7 @@ public class MySqlCommandDispatcher {
             return mapper.convertValue(data, Message.class);
         }
         catch (Exception e) {
-            log.error("Error converting data to message", e);
-            return null;
+            throw new ConvertObjectException(Message.class.getSimpleName());
         }
     }
 }

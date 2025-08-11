@@ -1,6 +1,7 @@
 package com.example.messengercommand.mysql.sync;
 
 
+import com.example.messengercommand.utility.LoggingUtil;
 import com.example.messengerutilities.model.SyncEventTemplate;
 import com.example.messengerutilities.utility.DataTypes;
 import com.example.messengerutilities.utility.SyncEventType;
@@ -18,6 +19,9 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class SyncCommandProducer {
 
+    // tools
+    private final LoggingUtil loggingUtil;
+
     private final KafkaTemplate<String, SyncEventTemplate> kafkaTemplate;
 
     public void sendSyncEvent(String topic, SyncEventType type, Map<DataTypes, String> ids) {
@@ -31,10 +35,13 @@ public class SyncCommandProducer {
 
         future.whenComplete((result, exception) -> {
             if (exception != null) {
-                log.error("Error while sending sync event", exception);
+                loggingUtil.error(log, this.getClass().getName(), exception.getMessage(), null);
                 return;
             }
-            log.info("Sync event sent to topic {}, result : {}", topic, result);
+            loggingUtil.info(log,
+                    this.getClass().getName(),
+                    null,
+                    "Sync event sent to topic : " + topic + ", result : "+ result);
         });
     }
 }

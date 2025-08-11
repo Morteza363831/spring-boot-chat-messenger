@@ -1,5 +1,7 @@
 package com.example.messengercommand.mysql.handler;
 
+import com.example.messengercommand.aop.AfterThrowingException;
+import com.example.messengercommand.exceptions.EntityNotFoundException;
 import com.example.messengercommand.mysql.sync.SyncCommandProducer;
 import com.example.messengerutilities.utility.DataTypes;
 import com.example.messengerutilities.utility.RequestTypes;
@@ -11,10 +13,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@AfterThrowingException
 public class MySqlSessionCommandHandler implements MySqlCommandHandler<Session> {
 
     private final SessionRepositoryMySql sessionRepositoryMySql;
@@ -42,13 +44,12 @@ public class MySqlSessionCommandHandler implements MySqlCommandHandler<Session> 
     }
 
     private void updateSession(Session session) {
-        Optional<Session> sessionOptional = sessionRepositoryMySql.findById(session.getId());
-
-        if (sessionOptional.isEmpty()) {
-            // TODO
-            throw new RuntimeException("Session not found");
-        }
-        sessionRepositoryMySql.save(session);
-        syncCommandProducer.sendSyncEvent(TopicNames.SESSION_SYNC_TOPIC, SyncEventType.UPDATE, Map.of(DataTypes.SESSION, session.getId()));
+        sessionRepositoryMySql.findById(session.getId())
+                        .ifPresentOrElse(existing -> {
+                            sessionRepositoryMySql.save(session);
+                            syncCommandProducer.sendSyncEvent(TopicNames.SESSION_SYNC_TOPIC, SyncEventType.UPDATE, Map.of(DataTypes.SESSION, session.getId()));
+                        }, () -> {
+                            throw new EntityNotFoundException(session.getId());
+                        });
     }
 }

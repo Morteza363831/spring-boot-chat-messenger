@@ -1,5 +1,7 @@
 package com.example.messengercommand.utility;
 
+import com.example.messengercommand.exceptions.UnknownException;
+
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -22,7 +24,7 @@ public class EncryptionUtil {
             return Base64.getEncoder().encodeToString(cipher.doFinal(plainText.getBytes()));
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException |
                  BadPaddingException e) {
-            throw new RuntimeException(e);
+            throw new UnknownException(e);
         }
     }
 
@@ -34,7 +36,7 @@ public class EncryptionUtil {
             return new String(cipher.doFinal(Base64.getDecoder().decode(cipherText)));
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException |
                  BadPaddingException e) {
-            throw new RuntimeException(e);
+            throw new UnknownException(e);
         }
     }
 

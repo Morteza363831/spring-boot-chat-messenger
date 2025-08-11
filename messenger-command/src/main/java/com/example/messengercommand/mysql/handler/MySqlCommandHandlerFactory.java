@@ -1,5 +1,7 @@
 package com.example.messengercommand.mysql.handler;
 
+import com.example.messengercommand.aop.AfterThrowingException;
+import com.example.messengercommand.exceptions.UnknownException;
 import com.example.messengerutilities.utility.DataTypes;
 import com.example.messengercommand.utility.HandlerKey;
 import org.springframework.stereotype.Component;
@@ -8,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
+@AfterThrowingException
 public class MySqlCommandHandlerFactory {
 
     private final Map<HandlerKey, MySqlCommandHandler<?>> handlerMap = new HashMap<>();
@@ -36,6 +39,6 @@ public class MySqlCommandHandlerFactory {
             return new HandlerKey(DataTypes.MESSAGE);
         }
         // TODO
-        throw new RuntimeException("Unknown MySqlCommandHandler");
+        throw new UnknownException("Unknown MySqlCommandHandler");
     }
 }
