@@ -1,5 +1,8 @@
 package com.example.messengercommand.mssql.handler;
 
+import com.example.messengercommand.aop.AfterThrowingException;
+import com.example.messengercommand.exceptions.ConvertObjectException;
+import com.example.messengercommand.exceptions.UnExpectedValueException;
 import com.example.messengerutilities.model.KafkaDataStructure;
 import com.example.messengerutilities.utility.DataTypes;
 import com.example.messengerutilities.utility.RequestTypes;
@@ -7,6 +10,7 @@ import com.example.messengercommand.model.Message;
 import com.example.messengercommand.model.Session;
 import com.example.messengercommand.model.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,16 +22,19 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@AfterThrowingException
 public class MsSqlCommandDispatcher {
 
     private final ObjectMapper mapper;
 
     private final MsSqlCommandHandlerFactory msSqlCommandHandlerFactory;
 
+    @Transactional(rollbackOn = Exception.class)
     public void dispatch(KafkaDataStructure kafkaDataStructure) {
         DataTypes dataType = kafkaDataStructure.getDataType();
         RequestTypes requestType = kafkaDataStructure.getRequestType();
 
+        Session session = convertToSession(kafkaDataStructure.getData());
         switch (dataType) {
             case USER -> msSqlCommandHandlerFactory.<User>getHandler(DataTypes.USER)
                     .handle(requestType, convertToUser(kafkaDataStructure.getData()));
@@ -38,7 +45,7 @@ public class MsSqlCommandDispatcher {
             case MESSAGE -> msSqlCommandHandlerFactory.<Message>getHandler(DataTypes.MESSAGE)
                     .handle(requestType, convertToMessage(kafkaDataStructure.getData()));
 
-            default -> throw new RuntimeException("Unexpected value: " + dataType);
+            default -> throw new UnExpectedValueException(dataType);
         }
     }
 
@@ -48,8 +55,7 @@ public class MsSqlCommandDispatcher {
             return mapper.convertValue(data, User.class);
         }
         catch (Exception e) {
-            log.error("Error converting data to user", e);
-            return null;
+            throw new ConvertObjectException(User.class.getSimpleName());
         }
     }
 
@@ -58,8 +64,7 @@ public class MsSqlCommandDispatcher {
             return mapper.convertValue(data, Session.class);
         }
         catch (Exception e) {
-            log.error("Error converting data to session", e);
-            return null;
+            throw new ConvertObjectException(Session.class.getSimpleName());
         }
     }
 
@@ -68,8 +73,7 @@ public class MsSqlCommandDispatcher {
             return mapper.convertValue(data, Message.class);
         }
         catch (Exception e) {
-            log.error("Error converting data to message", e);
-            return null;
+            throw new ConvertObjectException(Message.class.getSimpleName());
         }
     }
 }
