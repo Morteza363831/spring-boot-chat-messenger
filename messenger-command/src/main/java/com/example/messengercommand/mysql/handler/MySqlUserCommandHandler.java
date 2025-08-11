@@ -1,5 +1,7 @@
 package com.example.messengercommand.mysql.handler;
 
+import com.example.messengercommand.aop.AfterThrowingException;
+import com.example.messengercommand.exceptions.EntityNotFoundException;
 import com.example.messengercommand.mysql.sync.SyncCommandProducer;
 import com.example.messengerutilities.utility.DataTypes;
 import com.example.messengerutilities.utility.RequestTypes;
@@ -11,10 +13,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@AfterThrowingException
 public class MySqlUserCommandHandler implements MySqlCommandHandler<User> {
 
     private final UserRepositoryMySql userRepositoryMySql;
@@ -42,14 +44,13 @@ public class MySqlUserCommandHandler implements MySqlCommandHandler<User> {
     }
 
     private void updateUser(User user) {
-        Optional<User> userOptional = userRepositoryMySql.findById(user.getId());
-
-        if (userOptional.isEmpty()) {
-            // TODO
-            throw new RuntimeException("User not found");
-        }
-        userRepositoryMySql.save(user);
-        syncCommandProducer.sendSyncEvent(TopicNames.USER_SYNC_TOPIC, SyncEventType.UPDATE, Map.of(DataTypes.USER, user.getId()));
+        userRepositoryMySql.findById(user.getId())
+                        .ifPresentOrElse(existing -> {
+                            userRepositoryMySql.save(user);
+                            syncCommandProducer.sendSyncEvent(TopicNames.USER_SYNC_TOPIC, SyncEventType.UPDATE, Map.of(DataTypes.USER, user.getId()));
+                        }, () -> {
+                            throw new EntityNotFoundException(user.getUsername());
+                        });
     }
 
 }

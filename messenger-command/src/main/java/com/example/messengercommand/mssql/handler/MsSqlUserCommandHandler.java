@@ -1,15 +1,17 @@
 package com.example.messengercommand.mssql.handler;
 
+import com.example.messengercommand.aop.AfterThrowingException;
+import com.example.messengercommand.exceptions.EntityNotFoundException;
 import com.example.messengerutilities.utility.RequestTypes;
 import com.example.messengercommand.model.User;
 import com.example.messengercommand.mssql.repository.UserRepositoryMsSql;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@AfterThrowingException
 public class MsSqlUserCommandHandler implements MsSqlCommandHandler<User> {
 
     private final UserRepositoryMsSql userRepositoryMsSql;
@@ -32,13 +34,13 @@ public class MsSqlUserCommandHandler implements MsSqlCommandHandler<User> {
     }
 
     private void updateUser(User user) {
-        Optional<User> userOptional = userRepositoryMsSql.findById(user.getId());
+        userRepositoryMsSql.findById(user.getId())
+                .ifPresentOrElse(existing -> {
+                    userRepositoryMsSql.save(user);
+                }, () -> {
+                    throw new EntityNotFoundException(user.getUsername());
+                });
 
-        if (userOptional.isEmpty()) {
-            // TODO
-            throw new RuntimeException("User not found");
-        }
-        userRepositoryMsSql.save(user);
     }
 
 }
