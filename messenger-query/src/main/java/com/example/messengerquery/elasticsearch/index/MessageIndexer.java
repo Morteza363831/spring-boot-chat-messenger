@@ -1,6 +1,8 @@
 package com.example.messengerquery.elasticsearch.index;
 
+import com.example.messengerquery.aop.AfterThrowingException;
 import com.example.messengerquery.elasticsearch.repository.MessageElasticsearchRepository;
+import com.example.messengerquery.exception.IndexingException;
 import com.example.messengerquery.mapper.MessageMapper;
 import com.example.messengerquery.model.Message;
 import com.example.messengerquery.model.MessageDocument;
@@ -19,6 +21,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@AfterThrowingException
 public class MessageIndexer implements Indexer<Message, MessageDocument> {
 
     private final MessageMapper messageMapper;
@@ -40,24 +43,45 @@ public class MessageIndexer implements Indexer<Message, MessageDocument> {
     @Override
     public void index() {
 
-        int page = 0;
-        int size = 500;
+        try {
+            int page = 0;
+            int size = 500;
 
-        Page<Message> messages;
+            Page<Message> messages;
 
-        do {
-            messages = getAllMessages(page, size);
+            do {
+                messages = getAllMessages(page, size);
 
-            final List<MessageDocument> messageDocumentList = messages.getContent()
-                    .stream()
-                    .map(this::map)
-                    .toList();
+                final List<MessageDocument> messageDocumentList = messages.getContent()
+                        .stream()
+                        .map(this::map)
+                        .toList();
 
-            indexMessages(messageDocumentList);
+                indexMessages(messageDocumentList);
+            }
+            while (!messages.isLast());
+
         }
-        while (!messages.isLast());
+        catch (Exception e) {
+            throw new IndexingException(MessageDocument.class.getSimpleName());
+        }
     }
 
+    private Page<Message> getAllMessages(int page, int size) {
+        return databaseRepository.findAll(PageRequest.of(page, size));
+    }
+
+    private void indexMessages(List<MessageDocument> messageDocumentList) {
+        elasticsearchRepository.saveAll(messageDocumentList);
+
+    }
+
+    private MessageDocument map(Message message) {
+        return messageMapper.toMessageDocument(message);
+    }
+
+
+    // It is not following solid principles .
     @Override
     public void sync(SyncEventType type, String id) {
         switch (type) {
@@ -84,24 +108,5 @@ public class MessageIndexer implements Indexer<Message, MessageDocument> {
                     elasticsearchRepository.save(messageMapper.toMessageDocument(updated));
                 });
 
-    }
-
-    private Page<Message> getAllMessages(int page, int size) {
-        return databaseRepository.findAll(PageRequest.of(page, size));
-    }
-
-    private void indexMessages(List<MessageDocument> messageDocumentList) {
-        try {
-            elasticsearchRepository.saveAll(messageDocumentList);
-            Iterable<MessageDocument> list = elasticsearchRepository.findAll();
-            System.out.println("adsff");
-        }
-        catch (Exception e) {
-            log.error(Arrays.toString(e.getStackTrace()));
-        }
-    }
-
-    private MessageDocument map(Message message) {
-        return messageMapper.toMessageDocument(message);
     }
 }

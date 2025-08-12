@@ -12,16 +12,13 @@ import lombok.Setter;
 @Table(name = "sessions")
 public class Session {
     @Id
-    @Size(max = 36)
     @Column(name = "id", nullable = false, length = 36)
     private String id;
 
-    @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user1_id", referencedColumnName = "id", nullable = false)
     private User user1;
 
-    @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user2_id", referencedColumnName = "id", nullable = false)
     private User user2;

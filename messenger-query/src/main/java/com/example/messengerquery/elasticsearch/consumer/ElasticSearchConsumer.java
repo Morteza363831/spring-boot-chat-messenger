@@ -22,6 +22,12 @@ public class ElasticSearchConsumer {
             TopicNames.MESSAGE_SYNC_TOPIC
     }, groupId = "elasticsearch")
     public void consume(SyncEventTemplate syncEventTemplate) {
-        syncEventDispatcher.dispatch(syncEventTemplate);
+        try {
+            syncEventDispatcher.dispatch(syncEventTemplate);
+        }
+        catch (Exception e) {
+            // implement later
+            log.error(e.getMessage());
+        }
     }
 }

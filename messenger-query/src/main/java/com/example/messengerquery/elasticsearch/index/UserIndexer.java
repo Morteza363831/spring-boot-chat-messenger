@@ -1,6 +1,8 @@
 package com.example.messengerquery.elasticsearch.index;
 
+import com.example.messengerquery.aop.AfterThrowingException;
 import com.example.messengerquery.elasticsearch.repository.UserElasticsearchRepository;
+import com.example.messengerquery.exception.IndexingException;
 import com.example.messengerquery.mapper.UserMapper;
 import com.example.messengerquery.model.User;
 import com.example.messengerquery.model.UserDocument;
@@ -18,6 +20,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@AfterThrowingException
 public class UserIndexer implements Indexer<User, UserDocument> {
 
     private final UserMapper userMapper;
@@ -39,24 +42,46 @@ public class UserIndexer implements Indexer<User, UserDocument> {
     @Override
     public void index() {
 
-        int page = 0;
-        int size = 500;
+        try {
 
-        Page<User> users;
+            int page = 0;
+            int size = 500;
 
-        do {
-            users = getAllUsers(page, size);
+            Page<User> users;
 
-            List<UserDocument> userDocumentList = users.getContent()
-                    .stream()
-                    .map(this::map)
-                    .toList();
+            do {
+                users = getAllUsers(page, size);
 
-            indexUsers(userDocumentList);
+                List<UserDocument> userDocumentList = users.getContent()
+                        .stream()
+                        .map(this::map)
+                        .toList();
+
+                indexUsers(userDocumentList);
+            }
+            while (!users.isLast());
+
         }
-        while (!users.isLast());
+        catch (Exception e) {
+            throw new IndexingException(UserDocument.class.getSimpleName());
+        }
+
     }
 
+    private Page<User> getAllUsers(int page, int size) {
+        return databaseRepository.findAll(PageRequest.of(page, size));
+    }
+
+    private void indexUsers(List<UserDocument> users) {
+        elasticsearchRepository.saveAll(users);
+    }
+
+    private UserDocument map(User user) {
+        return userMapper.toUserDocument(user);
+    }
+
+
+    // It is not following solid principles .
     @Override
     public void sync(SyncEventType type, String id) {
         switch (type) {
@@ -85,20 +110,4 @@ public class UserIndexer implements Indexer<User, UserDocument> {
                 });
     }
 
-    private Page<User> getAllUsers(int page, int size) {
-        return databaseRepository.findAll(PageRequest.of(page, size));
-    }
-
-    private void indexUsers(List<UserDocument> users) {
-        try {
-            elasticsearchRepository.saveAll(users);
-        }
-        catch (Exception e) {
-            log.error(e.getStackTrace().toString());
-        }
-    }
-
-    private UserDocument map(User user) {
-        return userMapper.toUserDocument(user);
-    }
 }
