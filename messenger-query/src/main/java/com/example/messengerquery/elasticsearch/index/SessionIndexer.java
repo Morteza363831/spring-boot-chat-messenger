@@ -1,6 +1,8 @@
 package com.example.messengerquery.elasticsearch.index;
 
+import com.example.messengerquery.aop.AfterThrowingException;
 import com.example.messengerquery.elasticsearch.repository.SessionElasticsearchRepository;
+import com.example.messengerquery.exception.IndexingException;
 import com.example.messengerquery.mapper.SessionMapper;
 import com.example.messengerquery.model.Session;
 import com.example.messengerquery.model.SessionDocument;
@@ -18,6 +20,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@AfterThrowingException
 public class SessionIndexer implements Indexer<Session, SessionDocument> {
 
     private final SessionMapper sessionMapper;
@@ -39,24 +42,45 @@ public class SessionIndexer implements Indexer<Session, SessionDocument> {
     @Override
     public void index() {
 
-        int page = 0;
-        int size = 500;
-        Page<Session> sessions;
+        try {
 
-        do {
-            sessions = getAllSessions(page, size);
+            int page = 0;
+            int size = 500;
+            Page<Session> sessions;
 
-            final List<SessionDocument> sessionDocumentList = sessions.getContent()
-                    .stream()
-                    .map(this::map)
-                    .toList();
+            do {
+                sessions = getAllSessions(page, size);
 
-            indexSessions(sessionDocumentList);
+                final List<SessionDocument> sessionDocumentList = sessions.getContent()
+                        .stream()
+                        .map(this::map)
+                        .toList();
+
+                indexSessions(sessionDocumentList);
+            }
+            while (!sessions.isLast());
+
         }
-        while (!sessions.isLast());
+        catch (Exception e) {
+            throw new IndexingException(SessionDocument.class.getSimpleName());
+        }
 
     }
 
+    private Page<Session> getAllSessions(int page, int size) {
+        return databaseRepository.findAllEntityGraph(PageRequest.of(page, size));
+    }
+
+    private void indexSessions(List<SessionDocument> sessionDocumentList) {
+        elasticsearchRepository.saveAll(sessionDocumentList);
+    }
+
+    private SessionDocument map(Session session) {
+        return sessionMapper.toSessionDocument(session);
+    }
+
+
+    // It is not following solid principles .
     @Override
     public void sync(SyncEventType type, String id) {
         switch (type) {
@@ -84,24 +108,4 @@ public class SessionIndexer implements Indexer<Session, SessionDocument> {
             elasticsearchRepository.save(sessionMapper.toSessionDocument(updated));
         });
     }
-
-
-    private Page<Session> getAllSessions(int page, int size) {
-        return databaseRepository.findAllEntityGraph(PageRequest.of(page, size));
-    }
-
-    private void indexSessions(List<SessionDocument> sessionDocumentList) {
-        try {
-            elasticsearchRepository.saveAll(sessionDocumentList);
-        }
-        catch (Exception e) {
-            log.error(e.getStackTrace().toString());
-        }
-    }
-
-    private SessionDocument map(Session session) {
-        return sessionMapper.toSessionDocument(session);
-    }
-
-
 }
