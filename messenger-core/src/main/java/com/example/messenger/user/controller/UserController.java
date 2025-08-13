@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,22 +48,17 @@ public class UserController {
     @ApiResponse(responseCode = "500", description = "Internal error")
     @SecurityRequirements() // Excludes security for this endpoint
     @PostMapping("/register")
-    public ResponseEntity<ResponseResult<UserDto>> registerUser(@RequestBody UserCreateDto user) {
-
-        final Optional<UserDto> userEntityDtoOptional = Optional.ofNullable(userService.save(user));
-        if (userEntityDtoOptional.isPresent()) {
-            return ResponseEntity
-                    .status(HttpStatus.CREATED)
-                    .body(new ResponseResult<>(
-                            "success",
-                            HttpStatus.CREATED.value(),
-                            "User registered successfully",
-                            userEntityDtoOptional.get(),
-                            "/api/v1/users/register"
-                    ));
-        } else {
-            throw new InternalServerException("User could not be created.");
-        }
+    public ResponseEntity<ResponseResult> registerUser(@RequestBody UserCreateDto user, HttpServletRequest request) {
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ResponseResult.builder()
+                        .status("success")
+                        .statusCode(HttpStatus.CREATED.value())
+                        .message("User registered successfully")
+                        .data(userService.save(user))
+                        .path(request.getRequestURI())
+                        .build()
+                );
     }
 
     @Operation(summary = "Update user details", description = "Updates the details of an existing user")
@@ -74,33 +70,36 @@ public class UserController {
     @PutMapping("/{username}")
     public ResponseEntity<?> updateUser(
             @PathVariable @Pattern(regexp = "^[a-zA-Z0-9_-]{3,16}$") String username,
-            @RequestBody UserUpdateDto user) {
+            @RequestBody UserUpdateDto user,
+            HttpServletRequest request) {
         userService.update(username, user);
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
-                .body(new ResponseResult<>(
-                        "success",
-                        HttpStatus.NO_CONTENT.value(),
-                        "User updated successfully",
-                        Map.of(),
-                        "/api/v1/users/update"
-                ));
+                .body(ResponseResult.builder()
+                        .status("success")
+                        .statusCode(HttpStatus.NO_CONTENT.value())
+                        .message("User updated successfully")
+                        .data(Map.of())
+                        .path(request.getRequestURI())
+                        .build()
+                );
     }
 
     @Operation(summary = "Get all users", description = "Retrieves a list of all users")
     @ApiResponse(responseCode = "200", description = "Successful")
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping
-    public ResponseEntity<?> getUsers() {
+    public ResponseEntity<?> getUsers(HttpServletRequest request) {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(new ResponseResult<>(
-                        "Success",
-                        HttpStatus.OK.value(),
-                        "User founded successfully",
-                        userService.getUsers(),
-                        "/api/v1/users/get"
-                ));
+                .body(ResponseResult.builder()
+                        .status("success")
+                        .statusCode(HttpStatus.OK.value())
+                        .message("Users retrieved successfully")
+                        .data(userService.getUsers())
+                        .path(request.getRequestURI())
+                        .build()
+                );
     }
 
     @Operation(summary = "Get user by username", description = "Finds a user by their username")
@@ -110,16 +109,17 @@ public class UserController {
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("isMatch(#username)|| hasAccess('ROLE_ADMIN')")
     @GetMapping("/{username}")
-    public ResponseEntity<?> getUser(@PathVariable String username) {
+    public ResponseEntity<?> getUser(@PathVariable String username, HttpServletRequest request) {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(new ResponseResult<>(
-                        "Success",
-                        HttpStatus.OK.value(),
-                        "User founded successfully",
-                        userService.getUser(username),
-                        "/api/v1/users/get"
-                ));
+                .body(ResponseResult.builder()
+                        .status("success")
+                        .statusCode(HttpStatus.OK.value())
+                        .message("User retrieved successfully")
+                        .data(userService.getUser(username))
+                        .path(request.getRequestURI())
+                        .build()
+                );
     }
 
     @Operation(summary = "Delete a user", description = "Deletes a user from the system")
@@ -129,16 +129,17 @@ public class UserController {
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("isMatch(#userDeleteDto.getUsername()) || hasAccess('ROLE_ADMIN')")
     @DeleteMapping("/delete")
-    public ResponseEntity<?> deleteUser(@RequestBody UserDeleteDto userDeleteDto) {
+    public ResponseEntity<?> deleteUser(@RequestBody UserDeleteDto userDeleteDto, HttpServletRequest request) {
         userService.delete(userDeleteDto);
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(new ResponseResult<>(
-                        "Success",
-                        HttpStatus.OK.value(),
-                        "User founded successfully",
-                        Map.of(),
-                        "/api/v1/users/get"
-                ));
+                .body(ResponseResult.builder()
+                        .status("success")
+                        .statusCode(HttpStatus.OK.value())
+                        .message("User deleted successfully")
+                        .data(Map.of())
+                        .path(request.getRequestURI())
+                        .build()
+                );
     }
 }

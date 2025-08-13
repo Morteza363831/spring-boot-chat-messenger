@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -35,30 +36,17 @@ public class SessionController {
     @ApiResponse(responseCode = "409", description = "Session already exists")
     @PreAuthorize("isMatch(#sessionCreateDto.getUser1()) || hasAccess('ROLE_ADMIN')")
     @PostMapping("/create")
-    public ResponseEntity<?> createSession(@RequestBody SessionCreateDto sessionCreateDto) {
-        final Optional<SessionDto> sessionEntityDto = Optional.ofNullable(sessionService.save(sessionCreateDto));
-
-        if (sessionEntityDto.isPresent()) {
-            return ResponseEntity
-                    .status(HttpStatus.CREATED)
-                    .body(new ResponseResult<>(
-                            "success",
-                            HttpStatus.CREATED.value(),
-                            "Session created successfully",
-                            sessionEntityDto.get(),
-                            "/api/v1/sessions/create"
-                    ));
-        }
-        log.error("Session creation failed");
+    public ResponseEntity<?> createSession(@RequestBody SessionCreateDto sessionCreateDto, HttpServletRequest request) {
         return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ResponseResult<>(
-                        "failure",
-                        HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                        "Session creation failed",
-                        Map.of(),
-                        "/api/v1/sessions/create"
-                ));
+                .status(HttpStatus.CREATED)
+                .body(ResponseResult.builder()
+                        .status("success")
+                        .statusCode(HttpStatus.CREATED.value())
+                        .message("Session created successfully")
+                        .data(sessionService.save(sessionCreateDto))
+                        .path(request.getRequestURI())
+                        .build()
+                );
     }
 
     @Operation(summary = "Get session by users", description = "Retrieves the chat session for two users")
@@ -66,16 +54,17 @@ public class SessionController {
     @ApiResponse(responseCode = "404", description = "Session not found")
     @PreAuthorize("isMatch(#user1) || hasAccess('ROLE_ADMIN')")
     @GetMapping
-    public ResponseEntity<?> getSession(@RequestParam String user1 , @RequestParam String user2) {
+    public ResponseEntity<?> getSession(@RequestParam String user1 , @RequestParam String user2, HttpServletRequest request) {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(new ResponseResult<>(
-                        "success",
-                        HttpStatus.OK.value(),
-                        "Session founded successfully",
-                        sessionService.getSession(user1, user2),
-                        "/api/v1/sessions?user1" + user1 + "&user2" + user2
-                ));
+                .body(ResponseResult.builder()
+                        .status("success")
+                        .statusCode(HttpStatus.OK.value())
+                        .message("Session retrieved successfully")
+                        .data(sessionService.getSession(user1, user2))
+                        .path(request.getRequestURI())
+                        .build()
+                );
     }
 
     @Operation(summary = "Delete a chat session", description = "Deletes an existing chat session")
@@ -83,17 +72,18 @@ public class SessionController {
     @ApiResponse(responseCode = "404", description = "Session not found")
     @PreAuthorize("isMatch(#sessionDeleteDto.getUser1())|| hasAccess('ROLE_ADMIN')")
     @DeleteMapping("/delete")
-    public ResponseEntity<?> deleteSession(@RequestBody SessionDeleteDto sessionDeleteDto) {
+    public ResponseEntity<?> deleteSession(@RequestBody SessionDeleteDto sessionDeleteDto, HttpServletRequest request) {
         sessionService.delete(sessionDeleteDto);
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(new ResponseResult<Object>(
-                        "success",
-                        HttpStatus.OK.value(),
-                        "Session deleted successfully",
-                        Map.of(),
-                        "/api/v1/sessions/delete"
-                ));
+                .body(ResponseResult.builder()
+                        .status("success")
+                        .statusCode(HttpStatus.OK.value())
+                        .message("Session deleted successfully")
+                        .data(Map.of())
+                        .path(request.getRequestURI())
+                        .build()
+                );
     }
 
 

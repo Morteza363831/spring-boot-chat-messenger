@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -46,20 +47,21 @@ public class LoginController {
     @ApiResponse(responseCode = "200", description = "Token generated successfully")
     @ApiResponse(responseCode = "401", description = "Invalid credentials")
     @PostMapping("/token")
-    public ResponseEntity<?> token(@RequestBody AuthenticationDto authenticationDto) {
+    public ResponseEntity<?> token(@RequestBody AuthenticationDto authenticationDto, HttpServletRequest request) {
         try {
             authenticate(authenticationDto.getUsername(), authenticationDto.getPassword());
             final UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationDto.getUsername());
             final String token = jwtTokenUtil.generateToken(userDetails);
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new ResponseResult<>(
-                            "success",
-                            HttpStatus.OK.value(),
-                            "Login successful",
-                            token,
-                            "/api/v1/auth/token"
-                    ));
+                    .body(ResponseResult.builder()
+                            .status("success")
+                            .statusCode(HttpStatus.OK.value())
+                            .message("Login successful")
+                            .data(token)
+                            .path(request.getRequestURI())
+                            .build()
+                    );
         } catch (EntityNotFoundException e) {
             log.error("User not found: {}", authenticationDto.getUsername());
             throw new EntityNotFoundException(authenticationDto.getUsername());

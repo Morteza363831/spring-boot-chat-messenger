@@ -28,13 +28,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleCustomException(ValidationException e, HttpServletRequest request) {
         return ResponseEntity
                 .status(e.getStatus())
-                .body(new ResponseResult<>(
-                        "failure",
-                        e.getStatus().value(),
-                        e.getMessage(),
-                        e.errors,
-                        request.getRequestURI()
-                ));
+                .body(ResponseResult.builder()
+                        .status("failure")
+                        .statusCode(e.getStatus().value())
+                        .message(e.getMessage())
+                        .data(e.errors)
+                        .path(request.getRequestURI())
+                        .build()
+                );
     }
 
     @ExceptionHandler(value = JsonProcessingException.class)
@@ -60,14 +61,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<?> handleDataIntegrityViolationException(DataIntegrityViolationException e, HttpServletRequest request) {
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(new ResponseResult<>(
-                        "failure",
-                        HttpStatus.BAD_REQUEST.value(),
-                        "Error occurred",
-                        e.getMessage(),
-                        request.getRequestURI()
-                ));
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ResponseResult.builder()
+                        .status("failure")
+                        .statusCode(HttpStatus.BAD_REQUEST.value())
+                        .message("Error occurred")
+                        .data(e.getMessage())
+                        .path(request.getRequestURI())
+                        .build()
+                );
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -78,12 +80,13 @@ public class GlobalExceptionHandler {
     private ResponseEntity<?> buildErrorResponse(Exception e, HttpStatus status, HttpServletRequest request) {
         return ResponseEntity
                 .status(status)
-                .body(new ResponseResult<>(
-                        "failure",
-                        status.value(),
-                        "Error occurred",
-                        e.getMessage(),
-                        request.getRequestURI()
-                ));
+                .body(ResponseResult.builder()
+                        .status("failure")
+                        .statusCode(status.value())
+                        .message("Error occurred")
+                        .data(e.getMessage())
+                        .path(request.getRequestURI())
+                        .build()
+                );
     }
 }
