@@ -34,7 +34,6 @@ public class MsSqlCommandDispatcher {
         DataTypes dataType = kafkaDataStructure.getDataType();
         RequestTypes requestType = kafkaDataStructure.getRequestType();
 
-        Session session = convertToSession(kafkaDataStructure.getData());
         switch (dataType) {
             case USER -> msSqlCommandHandlerFactory.<User>getHandler(DataTypes.USER)
                     .handle(requestType, convertToUser(kafkaDataStructure.getData()));
