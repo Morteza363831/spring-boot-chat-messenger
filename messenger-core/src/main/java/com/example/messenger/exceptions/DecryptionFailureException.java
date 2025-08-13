@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Getter
 @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 public class DecryptionFailureException extends BaseException {
+
     private String message;
     public DecryptionFailureException(String message) {
         super(message, HttpStatus.INTERNAL_SERVER_ERROR);

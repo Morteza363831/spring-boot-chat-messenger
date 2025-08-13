@@ -6,13 +6,12 @@ import com.example.messenger.kafka.CommandProducer;
 import com.example.messenger.message.model.*;
 import com.example.messenger.message.query.MessageQueryClient;
 import com.example.messenger.utility.AESGCMUtil;
+import com.example.messenger.utility.Validator;
 import com.example.messengerutilities.utility.DataTypes;
 import com.example.messengerutilities.utility.RequestTypes;
 import com.example.messengerutilities.utility.TopicNames;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -39,22 +38,20 @@ public class MessageServiceImpl implements MessageService {
     private final MessageQueryClient messageQueryClient;
 
 
-    @Transactional(rollbackOn = Exception.class)
     @Override
     public void saveMessage(UUID sessionId, MessageContent messageContent) {
 
-        validate(messageContent);
+        validator.validate(messageContent);
         // create new message entity if there is no tuple in database
         addMessageContentAndUpdateMessageEntity(sessionId, messageContent);
     }
 
-    @Transactional(rollbackOn = Exception.class)
     @Override
     public void saveEntity(UUID sessionId) {
 
         messageQueryClient.getMessageBySessionId(sessionId)
-                .ifPresentOrElse(foundedMessageEntity -> {
-                    throw new EntityAlreadyExistException(foundedMessageEntity.getId().toString());
+                .ifPresentOrElse(existing -> {
+                    throw new EntityAlreadyExistException(existing.getId().toString());
                 }, () -> {
                     MessageEntity messageEntity = makeMessageEntityObject(sessionId);
                     commandProducer.sendWriteEvent(TopicNames.MESSAGE_WRITE_TOPIC, RequestTypes.SAVE, DataTypes.MESSAGE, messageEntity);
@@ -67,27 +64,25 @@ public class MessageServiceImpl implements MessageService {
         return null;
     }
 
-    @Transactional(rollbackOn = Exception.class)
     @Override
     public List<MessageContent> getMessages(UUID sessionId) {
 
         MessageDto messageDto =messageQueryClient
                 .getMessageBySessionId(sessionId)
                 .map(MessageMapper.INSTANCE::toDto)
-                .orElseThrow(() -> new CustomEntityNotFoundException(sessionId.toString()));
+                .orElseThrow(() -> new EntityNotFoundException(sessionId.toString()));
 
         // then read message contents
         MessageContentList messageContentList;
         try {
             messageContentList = mapper.readValue(decryption(messageDto.content(), decode(messageDto.encryptedAesKey())), MessageContentList.class);
-        } catch (JsonProcessingException e) {
-            throw new JsonProcessingCustomException();
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            throw new JsonProcessingException();
         }
         return messageContentList.getMessageContentList();
     }
 
-    @Override
-    public MessageEntity makeMessageEntityObject(UUID sessionId) {
+    private MessageEntity makeMessageEntityObject(UUID sessionId) {
         final MessageEntity messageEntity = new MessageEntity();
         messageEntity.setSessionId(sessionId);
         try {
@@ -95,9 +90,7 @@ public class MessageServiceImpl implements MessageService {
             messageEntity.setContent(encryption(mapper.writeValueAsString(new MessageContentList()), secretKey));
             messageEntity.setEncryptedAesKey(encode(secretKey));
             return messageEntity;
-        } catch (JsonProcessingException e) {
-            throw new JsonProcessingCustomException();
-        } catch (Exception e) {
+        }catch (Exception e) {
             throw new KeyGenerationFailureException();
         }
     }
@@ -122,12 +115,12 @@ public class MessageServiceImpl implements MessageService {
                         final String encryptedContent = encryption(mapper.writeValueAsString(messageContentList), secretKey);
                         foundedMessageEntity.setContent(encryptedContent);
                         commandProducer.sendWriteEvent(TopicNames.MESSAGE_WRITE_TOPIC, RequestTypes.UPDATE, DataTypes.MESSAGE, foundedMessageEntity);
-                    } catch (JsonProcessingException e) {
-                        throw new JsonProcessingCustomException();
+                    } catch (Exception e) {
+                        throw new JsonProcessingException();
                     }
 
                 }, () -> {
-                    throw new CustomEntityNotFoundException("Message not found for session : " + sessionId);
+                    throw new EntityNotFoundException("Message for session : " + sessionId);
                 });
     }
 
@@ -166,15 +159,6 @@ public class MessageServiceImpl implements MessageService {
     private SecretKey decode(String encodedKey) {
         byte[] decodedBytes = Base64.getDecoder().decode(encodedKey);
         return new SecretKeySpec(decodedBytes, "AES");
-    }
-
-
-    private void validate(final Object dto) {
-        final List<String> violations = new ArrayList<>();
-        validator.validate(dto).forEach(field -> violations.add(field.getMessage()));
-        if (!violations.isEmpty()) {
-            throw new CustomValidationException(violations);
-        }
     }
 
 }
