@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -65,16 +66,17 @@ public class MessageController {
     @ApiResponse(responseCode = "404", description = "Session not found")
     @PreAuthorize("hasAccess(#sessionId)")
     @GetMapping("/{sessionId}")
-    public ResponseEntity<?> getAllMessages(@PathVariable UUID sessionId) {
+    public ResponseEntity<?> getAllMessages(@PathVariable UUID sessionId, HttpServletRequest request) {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(new ResponseResult<>(
-                        "success",
-                        HttpStatus.OK.value(),
-                        "Messages founded successfully",
-                        messageService.getMessages(sessionId),
-                        "/api/v1/messages/" + sessionId
-                ));
+                .body(ResponseResult.builder()
+                        .status("success")
+                        .statusCode(HttpStatus.OK.value())
+                        .message("Messages retrieved successfully")
+                        .data(messageService.getMessages(sessionId))
+                        .path(request.getRequestURI())
+                        .build()
+                );
     }
 
     @Operation(summary = "Store a message", description = "Stores a message in the database for a session")

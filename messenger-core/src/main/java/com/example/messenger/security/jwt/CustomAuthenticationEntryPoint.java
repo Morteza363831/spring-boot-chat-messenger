@@ -22,13 +22,13 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
                          final HttpServletResponse response,
                          final AuthenticationException authException) throws IOException {
 
-        ResponseResult<?> errorResponse = new ResponseResult<>(
-                "failure",
-                HttpServletResponse.SC_UNAUTHORIZED,
-                "Unauthorized access",
-                authException.getMessage(),
-                request.getRequestURI()
-        );
+        ResponseResult errorResponse = ResponseResult.builder()
+                .status("failure")
+                .statusCode(HttpServletResponse.SC_UNAUTHORIZED)
+                .message("Unauthorized access")
+                .data(authException.getMessage())
+                .path(request.getRequestURI())
+                .build();
 
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");

@@ -1,33 +1,31 @@
 package com.example.messenger.structure;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.Value;
+import org.springframework.data.annotation.CreatedDate;
 
 import java.util.Date;
 
-@Value
-public class ResponseResult<T> {
+@Setter
+@Getter
+@Builder
+public class ResponseResult {
     @JsonProperty("status")
-    String status;      // success, error, fail
+    private String status;      // success, error, fail
     @JsonProperty("status_code")
-    int statusCode;     // HTTP status code
+    private Integer statusCode;     // HTTP status code
     @JsonProperty("message")
-    String message;     // Custom message
+    private String message;     // Custom message
     @JsonProperty("timestamp")
-    Date timestamp;     // Response time
+    @Builder.Default
+    private Date timestamp= new Date();     // Response time
     @JsonProperty("data")
-    T data;             // Generic response data
+    private Object data;             // Generic response data
     @JsonProperty("path")
-    String path;        // Endpoint path
-
-    public ResponseResult(String status, int statusCode, String message, T data, String path) {
-        this.status = status;
-        this.statusCode = statusCode;
-        this.message = message;
-        this.timestamp = new Date();
-        this.data = data;
-        this.path = path;
-    }
+    private String path;        // Endpoint path
 
     // Getters and Setters
 }
