@@ -52,7 +52,7 @@
         <dependency>
             <groupId>co.elastic.clients</groupId>
             <artifactId>elasticsearch-java</artifactId>
-            <version>8.15.0</version>
+            <version>8.13.4</version>
         </dependency>
 
         <!-- databases -->
