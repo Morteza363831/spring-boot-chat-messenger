@@ -5,10 +5,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 public class SessionUserSizeException extends BaseException {
-    String message;
 
-    public SessionUserSizeException(String message) {
-        super(message, HttpStatus.BAD_REQUEST);
-        this.message = message;
+    public SessionUserSizeException(String sessionId) {
+        super(sessionId + " users size is maximum.", HttpStatus.BAD_REQUEST);
     }
 }

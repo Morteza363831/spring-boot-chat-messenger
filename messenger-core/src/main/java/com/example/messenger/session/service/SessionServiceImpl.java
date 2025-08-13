@@ -1,8 +1,8 @@
 package com.example.messenger.session.service;
 
 
-import com.example.messenger.exceptions.CustomEntityNotFoundException;
-import com.example.messenger.exceptions.CustomValidationException;
+import com.example.messenger.exceptions.EntityNotFoundException;
+import com.example.messenger.exceptions.SessionNotFoundException;
 import com.example.messenger.exceptions.EntityAlreadyExistException;
 import com.example.messenger.kafka.CommandProducer;
 import com.example.messenger.message.service.MessageService;
@@ -11,12 +11,10 @@ import com.example.messenger.session.query.SessionQueryClient;
 import com.example.messenger.user.model.UserEntity;
 import com.example.messenger.user.service.UserService;
 import com.example.messenger.utility.AuthorityUpdateType;
+import com.example.messenger.utility.Validator;
 import com.example.messengerutilities.utility.DataTypes;
 import com.example.messengerutilities.utility.RequestTypes;
 import com.example.messengerutilities.utility.TopicNames;
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
-import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -44,7 +42,6 @@ public class SessionServiceImpl implements SessionService {
     private final MessageService messageService;
 
 
-    @Transactional(rollbackOn = Exception.class)
     @Override
     public SessionDto getSession(String user1 , String user2) {
 
@@ -63,11 +60,10 @@ public class SessionServiceImpl implements SessionService {
         return null;
     }
 
-    @Transactional(rollbackOn = Exception.class)
     @Override
     public SessionDto save(SessionCreateDto sessionCreateDto) {
 
-        validate(sessionCreateDto);
+        validator.validate(sessionCreateDto);
 
         // find users
         final UserEntity firstUser = userService.getUserEntity(sessionCreateDto.getUser1());
@@ -75,7 +71,10 @@ public class SessionServiceImpl implements SessionService {
 
         sessionQueryClient.getSession(firstUser.getId(), secondUser.getId())
                 .ifPresentOrElse(foundedSession -> {
-                    throw new EntityAlreadyExistException(sessionCreateDto.getUser1() + " and " + sessionCreateDto.getUser2());
+                    throw new EntityAlreadyExistException("Session entity for : " +
+                            sessionCreateDto.getUser1() + " and " +
+                            sessionCreateDto.getUser2());
+
                 }, () -> {
                     // Create and save session
                     SessionEntity sessionEntity = SessionEntity.createSession(firstUser, secondUser);
@@ -93,11 +92,10 @@ public class SessionServiceImpl implements SessionService {
                 .orElseThrow(() -> new EntityNotFoundException(firstUser.getId() + " and " + secondUser.getId()));
     }
 
-    @Transactional(rollbackOn = Exception.class)
     @Override
-    public void delete(final SessionDeleteDto sessionDeleteDto) {
+    public void delete(SessionDeleteDto sessionDeleteDto) {
 
-        validate(sessionDeleteDto);
+        validator.validate(sessionDeleteDto);
 
         final UserEntity firstUser = userService.getUserEntity(sessionDeleteDto.getUser1());
         final UserEntity secondUser = userService.getUserEntity(sessionDeleteDto.getUser2());
@@ -110,19 +108,9 @@ public class SessionServiceImpl implements SessionService {
                             userService.updateUserAuthorities(firstUser, foundedSession.getId().toString(), AuthorityUpdateType.DELETE);
                             userService.updateUserAuthorities(secondUser, foundedSession.getId().toString(), AuthorityUpdateType.DELETE);
                         }, () -> {
-                            throw new CustomEntityNotFoundException("Session for user : " + sessionDeleteDto.getUser1() + " not found");
+                            throw new SessionNotFoundException(firstUser.getUsername(), secondUser.getUsername());
                         });
 
     }
 
-
-    // utils
-
-    private void validate(Object dto) {
-        final List<String> violations = new ArrayList<>();
-        validator.validate(dto).forEach(field -> violations.add(field.getMessage()));
-        if (!violations.isEmpty()) {
-            throw new CustomValidationException(violations);
-        }
-    }
 }

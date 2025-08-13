@@ -1,20 +1,18 @@
 package com.example.messenger.user.service;
 
 
-import com.example.messenger.exceptions.CustomValidationException;
+import com.example.messenger.aop.AfterThrowingException;
 import com.example.messenger.exceptions.EntityAlreadyExistException;
-import com.example.messenger.exceptions.CustomEntityNotFoundException;
+import com.example.messenger.exceptions.EntityNotFoundException;
 import com.example.messenger.kafka.CommandProducer;
 import com.example.messenger.user.model.UserUpdateDto;
 import com.example.messenger.user.model.*;
 import com.example.messenger.user.query.UserQueryClient;
 import com.example.messenger.utility.AuthorityUpdateType;
+import com.example.messenger.utility.Validator;
 import com.example.messengerutilities.utility.DataTypes;
 import com.example.messengerutilities.utility.RequestTypes;
 import com.example.messengerutilities.utility.TopicNames;
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
-import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,6 +29,7 @@ import java.util.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@AfterThrowingException
 public class UserServiceImpl implements UserService {
 
     // tools
@@ -57,7 +56,7 @@ public class UserServiceImpl implements UserService {
         return userQueryClient
                 .getUser(username)
                 .map(userMapper::toUserDto)
-                .orElseThrow(() -> new CustomEntityNotFoundException(username));
+                .orElseThrow(() -> new EntityNotFoundException(username));
     }
 
     // Not implemented
@@ -75,14 +74,13 @@ public class UserServiceImpl implements UserService {
     public UserEntity getUserEntity(String username) {
         return userQueryClient
                 .getUser(username)
-                .orElseThrow(() -> new CustomEntityNotFoundException(username)); // may change
+                .orElseThrow(() -> new EntityNotFoundException(username)); // may change
     }
 
-    @Transactional(rollbackOn = Exception.class)
     @Override
     public UserDto save(UserCreateDto userCreateDto) {
 
-        validate(userCreateDto);
+        validator.validate(userCreateDto);
 
         // retrieve user from query service
         userQueryClient.getUser(userCreateDto.getUsername())
@@ -102,11 +100,10 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new EntityNotFoundException(userCreateDto.getUsername()));
     }
 
-    @Transactional(rollbackOn = Exception.class)
     @Override
     public void update(String username, UserUpdateDto userUpdateDto) {
 
-        validate(userUpdateDto);
+        validator.validate(userUpdateDto);
 
         userQueryClient.getUser(username)
                 .ifPresentOrElse(foundedUser -> {
@@ -115,11 +112,10 @@ public class UserServiceImpl implements UserService {
                             RequestTypes.UPDATE,
                             DataTypes.USER, userMapper.partialUpdate(userUpdateDto, foundedUser));
                 }, () -> {
-                    throw new CustomEntityNotFoundException(username);
+                    throw new EntityNotFoundException(username);
                 });
     }
 
-    @Transactional(rollbackOn = Exception.class)
     @Override
     public void updateUserAuthorities(UserEntity userEntity, String authority, AuthorityUpdateType type) {
         final UserUpdateDto userUpdateDto = userMapper.userEntityToUpdateDto(userEntity);
@@ -141,11 +137,10 @@ public class UserServiceImpl implements UserService {
         update(userEntity.getUsername(), userUpdateDto);
     }
 
-    @Transactional(rollbackOn = Exception.class)
     @Override
     public void delete(UserDeleteDto userDeleteDto) {
 
-        validate(userDeleteDto);
+        validator.validate(userDeleteDto);
 
         userQueryClient.getUser(userDeleteDto.getUsername())
                 .ifPresent(foundedUser -> {
@@ -154,14 +149,4 @@ public class UserServiceImpl implements UserService {
                 });
     }
 
-
-    // utils
-
-    private void validate(Object userCreateDto) {
-        final List<String> violations = new ArrayList<>();
-        validator.validate(userCreateDto).forEach(field -> violations.add(field.getMessage()));
-        if (!violations.isEmpty()) {
-            throw new CustomValidationException(violations);
-        }
-    }
 }

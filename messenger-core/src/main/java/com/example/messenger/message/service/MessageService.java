@@ -15,6 +15,4 @@ public interface MessageService {
     MessageContent getEntity(Long id);
 
     List<MessageContent> getMessages(UUID sessionId);
-
-    MessageEntity makeMessageEntityObject(UUID sessionId);
 }

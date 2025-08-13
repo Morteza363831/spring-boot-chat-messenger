@@ -1,8 +1,8 @@
 package com.example.messenger.security.jwt.controller;
 
 import com.example.messenger.exceptions.AuthenticationFailureException;
-import com.example.messenger.exceptions.CustomEntityNotFoundException;
-import com.example.messenger.exceptions.CustomValidationException;
+import com.example.messenger.exceptions.EntityNotFoundException;
+import com.example.messenger.exceptions.ValidationException;
 import com.example.messenger.security.jwt.CustomAuthenticationManager;
 import com.example.messenger.security.jwt.CustomUserDetailsService;
 import com.example.messenger.security.jwt.JwtTokenUtil;
@@ -60,15 +60,15 @@ public class LoginController {
                             token,
                             "/api/v1/auth/token"
                     ));
-        } catch (CustomEntityNotFoundException e) {
+        } catch (EntityNotFoundException e) {
             log.error("User not found: {}", authenticationDto.getUsername());
-            throw new CustomEntityNotFoundException(authenticationDto.getUsername());
+            throw new EntityNotFoundException(authenticationDto.getUsername());
         } catch (AuthenticationFailureException failure) {
             log.error("Authentication failure: {}", failure.getMessage());
             throw new AuthenticationFailureException();
         } catch (Exception e) {
             log.error("Authentication failed for user: {}", authenticationDto.getUsername());
-            throw new CustomValidationException(List.of(e.getMessage()));
+            throw new ValidationException(List.of(e.getMessage()));
         }
     }
 
